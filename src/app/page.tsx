@@ -254,7 +254,7 @@ function applyFilters(
   search: string,
   filterBy: string,
   sortBy: string,
-  dateRange: DateRange | undefined
+  dateRange?: DateRange | undefined
 ): CaseItem[] {
   let result = [...items];
   
