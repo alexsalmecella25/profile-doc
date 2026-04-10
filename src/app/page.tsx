@@ -125,6 +125,11 @@ type CaseItem = {
   isLink?: boolean;
 };
 
+// ---------------------------------------------------------------------------
+// Shared view types
+// ---------------------------------------------------------------------------
+type CellaView = 'home' | 'cases' | 'projects' | 'docs' | 'billing' | 'visualizer' | 'discover' | 'project_detail' | 'blog' | 'settings' | 'article';
+
 const CASES_DATA: CaseItem[] = [
   {
     id: '1', clave: 'ID224593', subClave: 'General', proyecto: 'Desmoplastic tumor',
@@ -396,7 +401,7 @@ function CellaStudioDashboardContent() {
   const [leftNavOpen, setLeftNavOpen] = useState(true);
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'cases' | 'projects' | 'docs' | 'billing' | 'visualizer' | 'discover' | 'project_detail' | 'blog' | 'settings'>('home');
+  const [currentView, setCurrentView] = useState<CellaView>('home');
   const [pointerMode, setPointerMode] = useState<'select' | 'hand' | 'rotate' | 'comments'>('rotate');
   const [chatSidebarOpen, setChatSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ id: string; role: 'agent' | 'user'; text: string }[]>([]);
