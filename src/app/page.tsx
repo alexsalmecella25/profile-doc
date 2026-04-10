@@ -876,7 +876,7 @@ function CellaStudioDashboardContent() {
                                   <span className="text-[13px] text-[#b91c1c] dark:text-[#fca5a5]/70">Missing documentation to proceed to production</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-0.5 text-[#b91c1c] dark:text-[#fca5a5] font-normal text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
+                              <div className="flex items-center gap-0.5 text-ai-text font-normal text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
                                 <span>Resolve</span>
                                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                               </div>
@@ -891,7 +891,7 @@ function CellaStudioDashboardContent() {
                                   <span className="text-[13px] text-[#b91c1c] dark:text-[#fca5a5]/70">Revision required by specialist</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-0.5 text-[#b91c1c] dark:text-[#fca5a5] font-normal text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
+                              <div className="flex items-center gap-0.5 text-ai-text font-normal text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
                                 <span>Resolve</span>
                                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                               </div>
