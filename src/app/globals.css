@@ -1,0 +1,208 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Cella Studio Semantic Variables */
+  --color-ai-base: var(--ai-base);
+  --color-ai-surface: var(--ai-surface);
+  --color-ai-hover-1: var(--ai-hover-1);
+  --color-ai-hover-2: var(--ai-hover-2);
+  --color-ai-button: var(--ai-button);
+  --color-ai-border: var(--ai-border);
+  --color-ai-border-strong: var(--ai-border-strong);
+
+  --color-ai-text: var(--ai-text);
+  --color-ai-text-secondary: var(--ai-text-secondary);
+  --color-ai-text-tertiary: var(--ai-text-tertiary);
+  --color-ai-text-inverted: var(--ai-text-inverted);
+
+  --color-ai-accent: var(--ai-accent);
+  --color-ai-accent-hover: var(--ai-accent-hover);
+
+  --color-ai-success: var(--ai-success);
+
+  /* Shadcn variables mapped to AI Studio */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+/* Base Light Theme */
+:root {
+  /* AI Studio Core Semantic Colors - Light */
+  --ai-base: #ffffff;
+  /* Very subtle off-white background */
+  --ai-surface: #f9fafb;
+  /* Crisp white panels and cards */
+  --ai-hover-1: #f3f4f6;
+  /* Soft hover state */
+  --ai-hover-2: #e5e7eb;
+  /* Stronger hover / active state */
+  --ai-button: #ffffff;
+  /* Surface buttons on top of surface */
+  --ai-border: #e5e7eb;
+  /* Subtle borders */
+  --ai-border-strong: #d1d5db;
+  /* Stronger borders/dividers */
+
+  --ai-text: #111827;
+  /* Sharp dark text */
+  --ai-text-secondary: #4b5563;
+  /* Less important text / icons */
+  --ai-text-tertiary: #9ca3af;
+  /* Small disabled-like text */
+  --ai-text-inverted: #ffffff;
+  /* Text on dark buttons */
+
+  --ai-accent: #0782f5;
+  /* Primary brand blue */
+  --ai-accent-hover: #066bca;
+  /* Darker blue hover */
+
+  --ai-success: #1e8e3e;
+  /* Green for "New" dot */
+
+  /* Fallback layout vars */
+  --background: oklch(0.96 0 0);
+  /* #f0f4f9 */
+  --foreground: oklch(0.15 0 0);
+  /* #1f1f1f */
+  --card: oklch(1 0 0);
+  /* #ffffff */
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.6 0.15 250);
+  /* Google Blue roughly */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.93 0 0);
+  --muted-foreground: oklch(0.4 0 0);
+  --accent: oklch(0.93 0 0);
+  --accent-foreground: oklch(0.15 0 0);
+  --border: oklch(0.85 0 0);
+  --input: oklch(0.85 0 0);
+  --ring: oklch(0.6 0.15 250);
+}
+
+/* AI Studio Dark Theme */
+.dark {
+  /* AI Studio Core Semantic Colors - Dark */
+  --ai-base: #0f1115;
+  /* Same as Visualizer pure dark */
+  --ai-surface: #1e1f20;
+  --ai-hover-1: #282a2c;
+  --ai-hover-2: #323639;
+  --ai-button: #3a3b3c;
+  --ai-border: #444746;
+  --ai-border-strong: #5f6368;
+
+  --ai-text: #e3e3e3;
+  --ai-text-secondary: #c4c7c5;
+  --ai-text-tertiary: #8e918f;
+  --ai-text-inverted: #131314;
+
+  --ai-accent: #0782f5;
+  --ai-accent-hover: #5eb0fa;
+
+  --ai-success: #34a853;
+
+  /* Fallback layout vars */
+  --background: oklch(0.18 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.25 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.25 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.7 0.15 250);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.3 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: oklch(0.3 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --ring: oklch(0.7 0.15 250);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-ai-base text-ai-text antialiased;
+  }
+}
+
+/* Custom Panel Scrollbar for AI Studio feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background: var(--ai-border);
+}
+
+*:hover::-webkit-scrollbar-thumb:hover {
+  background: var(--ai-text-tertiary);
+}
+
+/* Copilot Voice Bars Animation */
+@keyframes copilotVoiceBar {
+
+  0%,
+  100% {
+    height: 6px;
+    opacity: 0.5;
+  }
+
+  50% {
+    height: 14px;
+    opacity: 1;
+  }
+}
+
+.animate-voice-bar {
+  animation: copilotVoiceBar 1s ease-in-out infinite;
+}
