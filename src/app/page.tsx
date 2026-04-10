@@ -269,12 +269,14 @@ function applyFilters(
   }
 
   if (dateRange?.from) {
+    const from = dateRange.from;
+    const to = dateRange.to;
     result = result.filter(c => {
       const itemDate = c.dateObj;
-      if (dateRange.to) {
-        return itemDate >= dateRange.from && itemDate <= dateRange.to;
+      if (to) {
+        return itemDate >= from && itemDate <= to;
       }
-      return itemDate.toDateString() === dateRange.from.toDateString();
+      return itemDate.toDateString() === from.toDateString();
     });
   }
 
