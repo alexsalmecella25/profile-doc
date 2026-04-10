@@ -401,7 +401,7 @@ function CellaStudioDashboardContent() {
   const [leftNavOpen, setLeftNavOpen] = useState(true);
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
-  const [currentView, setCurrentView] = useState<CellaView>('home');
+  const [currentView, setCurrentView] = useState<string>('home');
   const [pointerMode, setPointerMode] = useState<'select' | 'hand' | 'rotate' | 'comments'>('rotate');
   const [chatSidebarOpen, setChatSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ id: string; role: 'agent' | 'user'; text: string }[]>([]);
