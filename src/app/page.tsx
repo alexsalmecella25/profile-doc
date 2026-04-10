@@ -902,6 +902,7 @@ function CellaStudioDashboardContent() {
                             <h2 className="text-[20px] font-medium text-ai-text shrink-0">
                               Recent Cases
                             </h2>
+                            <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('cases')}>View all</span>
                           </div>
 
                           <div id="tour-recent-cases" className="border border-ai-border rounded-[8px] bg-white dark:bg-transparent overflow-hidden w-full">
@@ -985,7 +986,7 @@ function CellaStudioDashboardContent() {
                             <h3 className="text-[20px] font-medium text-ai-text">Recent Products</h3>
                             <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('discover')}>View all</span>
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 max-[1380px]:grid-cols-1 gap-3">
                             <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] shadow-sm rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[#0782f5] transition-colors">
                               <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[#0782f5] transition-colors shrink-0">C</div>
                               <div className="flex flex-col min-w-0">
