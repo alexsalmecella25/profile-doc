@@ -1455,7 +1455,7 @@ function DataRow({
             ) : (
               <CalendarPlus size={14} className="text-amber-600" />
             )}
-            <span>{estimatedDelivery.toLowerCase()}</span>
+            <span>{estimatedDelivery?.toLowerCase()}</span>
           </div>
         ) : (
           <span className="text-ai-text-tertiary">——</span>
