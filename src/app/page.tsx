@@ -910,7 +910,7 @@ function CellaStudioDashboardContent() {
                               <TableHeader className="bg-transparent">
                                 <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px]">
                                   <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
-                                  <TableHead className="text-ai-text-secondary font-medium w-[10%]">Created</TableHead>
+                                  <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
                                   <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
                                   <TableHead className="text-ai-text-secondary font-medium w-[12%]">Users</TableHead>
                                   <TableHead className="text-ai-text-secondary font-medium w-[18%]">Status</TableHead>
@@ -945,17 +945,17 @@ function CellaStudioDashboardContent() {
                             <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-900/10" />
                             
                             <div className="relative shrink-0">
-                               <Avatar style={{ width: '96px', height: '96px' }} className="border-4 border-white dark:border-[#131416] shadow-xl group-hover:scale-105 transition-transform duration-300 z-10">
+                               <Avatar className="w-[96px] h-[96px] max-[1680px]:w-[72px] max-[1680px]:h-[72px] border-4 border-white dark:border-[#131416] shadow-xl group-hover:scale-105 transition-transform duration-300 z-10">
                                  <AvatarImage src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop" />
-                                 <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-[32px]">LG</AvatarFallback>
+                                 <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-[32px] max-[1680px]:text-[24px]">LG</AvatarFallback>
                                </Avatar>
-                               <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-green-500 border-2 border-white dark:border-[#131416] z-20" />
+                               <div className="absolute bottom-1 right-1 w-5 h-5 max-[1680px]:bottom-0 max-[1680px]:right-0 max-[1680px]:w-4 max-[1680px]:h-4 rounded-full bg-green-500 border-2 border-white dark:border-[#131416] z-20" />
                             </div>
                             
                             <div className="flex flex-col gap-3 min-w-0 relative z-10 flex-1">
                               <div className="flex flex-col gap-0.5">
-                                <span className="text-ai-text font-bold text-[20px] leading-tight">Laura Gómez</span>
-                                <span className="text-[#1a73e8] dark:text-blue-400 font-semibold text-[13px] uppercase tracking-wider">CellaMS Sales Rep</span>
+                                <span className="text-ai-text font-bold text-[20px] max-[1680px]:text-[16px] leading-tight">Laura Gómez</span>
+                                <span className="text-[#1a73e8] dark:text-blue-400 font-semibold text-[13px] uppercase tracking-wider max-[1680px]:lowercase max-[1680px]:tracking-normal max-[1680px]:font-medium">CellaMS Sales Rep</span>
                               </div>
 
                               <div className="flex flex-col gap-2 w-full text-ai-text-secondary text-[13px]">
@@ -986,7 +986,7 @@ function CellaStudioDashboardContent() {
                             <h3 className="text-[20px] font-medium text-ai-text">Recent Products</h3>
                             <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('discover')}>View all</span>
                           </div>
-                          <div className="grid grid-cols-2 max-[1440px]:grid-cols-1 gap-3">
+                          <div className="grid grid-cols-2 max-[1680px]:grid-cols-1 gap-3">
                             <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] shadow-sm rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[#0782f5] transition-colors">
                               <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[#0782f5] transition-colors shrink-0">C</div>
                               <div className="flex flex-col min-w-0">
@@ -1447,16 +1447,18 @@ function DataRow({
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-ai-text-secondary text-[13px] lowercase">{date}</TableCell>
+      <TableCell className="text-ai-text-secondary text-[13px] lowercase max-[1680px]:hidden">{date}</TableCell>
       <TableCell className="text-ai-text text-[13px] font-medium">
-        {status === 'Completed' || status === 'In progress' ? (
+        {estimatedDelivery ? (
           <div className="flex items-center gap-2">
             {status === 'Completed' ? (
               <Truck size={14} className="text-green-600" />
-            ) : (
+            ) : status === 'In progress' ? (
               <CalendarPlus size={14} className="text-amber-600" />
+            ) : (
+              <CalendarIcon size={14} className="text-ai-text-tertiary" />
             )}
-            <span>{estimatedDelivery?.toLowerCase()}</span>
+            <span className={status === 'Pending' || status === 'Canceled' ? 'text-ai-text-secondary' : ''}>{estimatedDelivery.toLowerCase()}</span>
           </div>
         ) : (
           <span className="text-ai-text-tertiary">——</span>
@@ -1924,7 +1926,7 @@ function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelec
           <TableHeader>
             <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px] bg-ai-surface cursor-default">
               <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
-              <TableHead className="text-ai-text-secondary font-medium w-[10%]">Created</TableHead>
+              <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[12%]">Users</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[18%]">Status</TableHead>
@@ -2590,7 +2592,7 @@ function ProjectDetailView({
           <TableHeader>
             <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px] bg-ai-surface cursor-default">
               <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
-              <TableHead className="text-ai-text-secondary font-medium w-[10%]">Created</TableHead>
+              <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[12%]">Users</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[18%]">Status</TableHead>
