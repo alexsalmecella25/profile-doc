@@ -397,6 +397,7 @@ function CellaStudioDashboardContent() {
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'cases' | 'docs' | 'billing' | 'visualizer' | 'discover' | 'project_detail' | 'blog' | 'settings'>('home');
+  const [pointerMode, setPointerMode] = useState<'select' | 'hand' | 'rotate' | 'comments'>('rotate');
   const [chatSidebarOpen, setChatSidebarOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{ id: string; role: 'agent' | 'user'; text: string }[]>([]);
   const [isAgentTyping, setIsAgentTyping] = useState(false);
@@ -595,6 +596,8 @@ function CellaStudioDashboardContent() {
             onBack={() => setCurrentView('cases')}
             isDark={isDark}
             setIsDark={setIsDark}
+            pointerMode={pointerMode}
+            setPointerMode={setPointerMode}
             onInviteClick={handleInviteClick}
           />
         ) : (
