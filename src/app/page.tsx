@@ -3323,18 +3323,16 @@ function SettingsView({ onBack }: { onBack: () => void }) {
               <div className="p-8 flex flex-col gap-6">
                 <div 
                   onClick={() => setIsPasswordOpen(true)}
-                  className="flex items-center justify-between p-6 rounded-2xl bg-ai-base/10 border border-ai-border hover:border-blue-500 transition-all cursor-pointer group"
+                  className="flex items-center gap-5 p-6 rounded-2xl bg-ai-base/10 border border-ai-border hover:border-blue-500 transition-all cursor-pointer group"
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary group-hover:bg-[#1a73e8] group-hover:text-white group-hover:border-[#1a73e8] transition-all shadow-sm">
-                      <Lock size={22} />
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-[16px] font-bold text-ai-text">Change Password</span>
-                      <span className="text-[13px] text-ai-text-tertiary font-medium">Strengthen your account security with a new password.</span>
-                    </div>
+                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary group-hover:bg-[#1a73e8] group-hover:text-white group-hover:border-[#1a73e8] transition-all shadow-sm shrink-0">
+                    <Lock size={22} />
                   </div>
-                  <ChevronRight size={20} className="text-ai-text-tertiary group-hover:text-ai-text group-hover:translate-x-1 transition-all" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[16px] font-bold text-ai-text">Change Password</span>
+                    <span className="text-[13px] text-ai-text-tertiary font-medium">Strengthen your account security with a new password.</span>
+                  </div>
+                  <ChevronRight size={20} className="text-ai-text-tertiary group-hover:text-ai-text group-hover:translate-x-1 transition-all ml-auto" />
                 </div>
               </div>
             </section>
@@ -3351,28 +3349,26 @@ function SettingsView({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
               <div className="p-8 flex flex-col gap-6">
-                <div className="flex items-start justify-between p-6 rounded-2xl bg-ai-base/10 border border-ai-border group transition-all">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary">
-                        <MapPin size={20} />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[13px] font-bold text-ai-text-tertiary uppercase tracking-wider">Default Delivery Address</span>
-                        <p className="text-[15px] text-ai-text font-medium leading-relaxed">
-                          {address.street}<br />
-                          {address.zip} {address.city}<br />
-                          <span className="text-ai-text-tertiary text-[13px] mt-1 block">{address.phone}</span>
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => setIsLogisticsOpen(true)}
-                      className="h-10 w-10 rounded-full border border-ai-border hover:bg-ai-hover-1 text-ai-text-tertiary transition-all"
-                    >
-                      <Edit size={16} />
-                    </Button>
+                <div className="flex items-start gap-4 p-6 rounded-2xl bg-ai-base/10 border border-ai-border group transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary shrink-0">
+                    <MapPin size={20} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[13px] font-bold text-ai-text-tertiary uppercase tracking-wider">Default Delivery Address</span>
+                    <p className="text-[15px] text-ai-text font-medium leading-relaxed">
+                      {address.street}<br />
+                      {address.zip} {address.city}<br />
+                      <span className="text-ai-text-tertiary text-[13px] mt-1 block">{address.phone}</span>
+                    </p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsLogisticsOpen(true)}
+                    className="h-10 w-10 rounded-full border border-ai-border hover:bg-ai-hover-1 text-ai-text-tertiary transition-all ml-auto"
+                  >
+                    <Edit size={16} />
+                  </Button>
                 </div>
                 
                 <div className="flex items-center gap-2 p-4 bg-blue-500/5 rounded-xl border border-blue-500/10">
