@@ -287,7 +287,110 @@ function applyFilters(
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// Gatekeeper Component — Password protection for the demo
+// ---------------------------------------------------------------------------
+function Gatekeeper({ children }: { children: React.ReactNode }) {
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const CORRECT_PASSWORD = "C3ll4.2025%";
+
+  useEffect(() => {
+    const auth = sessionStorage.getItem('cella_authorized');
+    if (auth === 'true') {
+      setIsAuthorized(true);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === CORRECT_PASSWORD) {
+      sessionStorage.setItem('cella_authorized', 'true');
+      setIsAuthorized(true);
+      setError(false);
+    } else {
+      setError(true);
+      // Subtle shake effect could be added here
+      setTimeout(() => setError(false), 2000);
+    }
+  };
+
+  if (isLoading) return null;
+
+  if (!isAuthorized) {
+    return (
+      <div className="fixed inset-0 z-[5000] flex items-center justify-center bg-[#0a0a0b] text-white font-sans overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]" />
+        
+        <div className="relative w-full max-w-[400px] px-6 animate-in fade-in zoom-in-95 duration-700">
+          <div className="flex flex-col items-center gap-8">
+            {/* Logo Section */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-2xl shadow-blue-500/20">
+                <Sparkles className="text-white" size={32} />
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <h1 className="text-2xl font-bold tracking-tight">Cella Studio</h1>
+                <p className="text-sm text-gray-400 mt-1">Clinical Visualization & Surgical Planning</p>
+              </div>
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
+              <div className="relative group">
+                <div className={`absolute inset-0 bg-white/5 rounded-xl border transition-all duration-300 ${error ? 'border-red-500/50 bg-red-500/5' : 'border-white/10 group-focus-within:border-blue-500/50 group-focus-within:bg-white/10'}`} />
+                <div className="relative flex items-center h-14 px-4 gap-3">
+                  <Lock size={18} className={error ? 'text-red-400' : 'text-gray-500 group-focus-within:text-blue-400'} />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter access code"
+                    className="flex-1 bg-transparent border-none outline-none text-[15px] placeholder:text-gray-600"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    {error && <span className="text-[11px] font-bold text-red-500 uppercase tracking-widest animate-pulse">Incorrect</span>}
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                type="submit"
+                className="h-14 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-white/5"
+              >
+                Access Portal
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              </Button>
+            </form>
+
+            <div className="pt-4">
+              <span className="text-[11px] text-gray-500 uppercase tracking-[0.2em] font-medium">Protected Preview Environment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 export default function CellaStudioDashboard() {
+  return (
+    <Gatekeeper>
+      <CellaStudioDashboardContent />
+    </Gatekeeper>
+  );
+}
+
+function CellaStudioDashboardContent() {
   const [leftNavOpen, setLeftNavOpen] = useState(true);
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
