@@ -1440,7 +1440,7 @@ function DataRow({
     <TableRow className={`border-b border-ai-border hover:bg-gray-50/50 dark:hover:bg-white/[0.02] h-[60px] cursor-pointer transition-colors ${disabled ? "opacity-50" : ""}`}>
       <TableCell className="font-medium text-ai-text px-4">
         <div className="flex flex-col gap-1 items-start min-w-0">
-          <span className="font-bold text-[15px] truncate w-full leading-tight uppercase tracking-tight">{subProyecto}</span>
+          <span className="font-bold text-[15px] max-[1680px]:text-[13.5px] truncate w-full leading-tight uppercase tracking-tight">{subProyecto}</span>
           <div className="flex items-center gap-2 text-[11.5px] text-ai-text-secondary font-medium truncate w-full">
             <span className="text-ai-text-secondary/70 font-mono text-[10px] bg-ai-base px-1.5 py-0.5 rounded border border-ai-border shrink-0">{clave}</span>
             <span className="text-ai-text-secondary/80 truncate">{proyecto}</span>
