@@ -4082,7 +4082,6 @@ function TourCard({
         <div 
           className="absolute w-3 h-3 bg-white dark:bg-ai-surface border-ai-border border-l border-t transition-all duration-300"
           style={{
-            transform: 'rotate(45deg)',
             ...(pos.arrowPos === 'right' ? { left: -6, top: '50%', transform: 'translateY(-50%) rotate(-45deg)' } : 
                pos.arrowPos === 'bottom' ? { top: -6, left: '50%', transform: 'translateX(-50%) rotate(45deg)' } :
                pos.arrowPos === 'left' ? { right: -6, top: '50%', transform: 'translateY(-50%) rotate(135deg)' } :
