@@ -1452,13 +1452,13 @@ function DataRow({
         {estimatedDelivery ? (
           <div className="flex items-center gap-2">
             {status === 'Completed' ? (
-              <Truck size={14} className="text-green-600" />
+              <Truck size={14} className="text-green-600 shrink-0" />
             ) : status === 'In progress' ? (
-              <CalendarPlus size={14} className="text-amber-600" />
+              <CalendarPlus size={14} className="text-amber-600 shrink-0" />
             ) : (
-              <CalendarIcon size={14} className="text-ai-text-tertiary" />
+              <CalendarIcon size={14} className="text-ai-text-tertiary shrink-0" />
             )}
-            <span className={status === 'Pending' || status === 'Canceled' ? 'text-ai-text-secondary' : ''}>{estimatedDelivery.toLowerCase()}</span>
+            <span className={status === 'Pending' || status === 'Canceled' ? 'text-ai-text-secondary shrink-0' : 'shrink-0'}>{estimatedDelivery.toLowerCase()}</span>
           </div>
         ) : (
           <span className="text-ai-text-tertiary">——</span>
