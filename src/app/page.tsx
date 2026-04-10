@@ -857,7 +857,7 @@ function CellaStudioDashboardContent() {
                       <div className="lg:col-span-2 flex flex-col">
 
                         {/* ACTION CENTER - Contained in single bordered div */}
-                        <div id="tour-action-center" className="w-full bg-[#fef2f2]/60 dark:bg-[#450a0a]/10 border border-[#ef4444]/20 dark:border-[#ef4444]/20 rounded-[16px] overflow-hidden mb-8">
+                        <div id="tour-action-center" className="w-full bg-[#fef2f2]/60 dark:bg-[#450a0a]/10 border border-[#ef4444]/20 dark:border-[#ef4444]/20 rounded-[8px] overflow-hidden mb-8">
                           <div className="px-5 py-3 border-b border-[#ef4444]/10 bg-[#ef4444]/5 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-[#ef4444] animate-pulse" />
@@ -940,7 +940,7 @@ function CellaStudioDashboardContent() {
                       {/* Lado derecho 33% */}
                       <div className="lg:col-span-1 flex flex-col gap-10">
                         <div className="flex flex-col">
-                          <div className="border border-ai-border dark:border-white/10 bg-white dark:bg-[#131416] shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none rounded-[16px] p-6 flex flex-row items-start gap-6 text-left relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
+                          <div className="border border-ai-border dark:border-white/10 bg-white dark:bg-[#131416] shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none rounded-[8px] p-6 flex flex-row items-start gap-6 text-left relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
                             {/* Background decoration */}
                             <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-900/10" />
                             
@@ -986,7 +986,7 @@ function CellaStudioDashboardContent() {
                             <h3 className="text-[20px] font-medium text-ai-text">Recent Products</h3>
                             <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('discover')}>View all</span>
                           </div>
-                          <div className="grid grid-cols-2 max-[1380px]:grid-cols-1 gap-3">
+                          <div className="grid grid-cols-2 max-[1440px]:grid-cols-1 gap-3">
                             <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] shadow-sm rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[#0782f5] transition-colors">
                               <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[#0782f5] transition-colors shrink-0">C</div>
                               <div className="flex flex-col min-w-0">
