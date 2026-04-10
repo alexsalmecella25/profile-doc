@@ -876,9 +876,10 @@ function CellaStudioDashboardContent() {
                                   <span className="text-[13px] text-[#b91c1c] dark:text-[#fca5a5]/70">Missing documentation to proceed to production</span>
                                 </div>
                               </div>
-                              <Button className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-[12px] h-[32px] px-4 rounded-[6px] transition-all shadow-sm active:scale-95 border-none">
-                                Fix Case
-                              </Button>
+                              <div className="flex items-center gap-0.5 text-[#b91c1c] dark:text-[#fca5a5] font-bold text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
+                                <span>Resolve</span>
+                                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                              </div>
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-[12px] hover:bg-white/50 dark:hover:bg-white/5 transition-colors group cursor-pointer">
                               <div className="flex items-center gap-4">
@@ -890,9 +891,10 @@ function CellaStudioDashboardContent() {
                                   <span className="text-[13px] text-[#b91c1c] dark:text-[#fca5a5]/70">Revision required by specialist</span>
                                 </div>
                               </div>
-                              <Button className="bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-[12px] h-[32px] px-4 rounded-[6px] transition-all shadow-sm active:scale-95 border-none">
-                                Review
-                              </Button>
+                              <div className="flex items-center gap-0.5 text-[#b91c1c] dark:text-[#fca5a5] font-bold text-[13px] opacity-80 group-hover:opacity-100 transition-opacity mr-2">
+                                <span>Review</span>
+                                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                              </div>
                             </div>
                           </div>
                         </div>
