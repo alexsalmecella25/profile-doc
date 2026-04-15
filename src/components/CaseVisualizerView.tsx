@@ -181,7 +181,7 @@ function ContextMenuItem({ isDark, icon, label, onClick }: any) {
     return (
         <button
             onClick={onClick}
-            className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-lg text-[13px] transition-colors ${isDark ? "hover:bg-white/10 text-[#EDEDED]" : "hover:bg-black/5 text-[#11181C]"}`}
+            className={`flex items-center gap-2.5 w-full px-3 py-1.5 rounded-[8px] text-[13px] transition-colors ${isDark ? "hover:bg-white/10 text-[#EDEDED]" : "hover:bg-black/5 text-[#11181C]"}`}
         >
             <span className="opacity-70">{icon}</span>
             <span>{label}</span>
@@ -197,14 +197,14 @@ function ToolButton({ isDark, icon, label, active = false, onClick }: { isDark?:
                     <button
                         onClick={onClick}
                         className={`w-[32px] h-[32px] flex items-center justify-center rounded-[8px] cursor-pointer transition-all duration-200 focus:outline-none ${active
-                            ? "bg-[#3B82F6] text-white shadow-sm"
+                            ? "bg-[#3B82F6] text-white"
                             : "text-[#a3a3a3] hover:bg-white/10 hover:text-white"
                             }`}
                     >
                         {icon}
                     </button>
                 </TooltipTrigger>
-                <TooltipContent sideOffset={14} className={`${isDark ? "bg-[#1f2128] border border-white/10 text-[#ededed]" : "bg-white border border-black/5 text-gray-900"} rounded-lg px-3 py-1.5 shadow-xl`}><p className="text-[12px] font-medium">{label}</p></TooltipContent>
+                <TooltipContent sideOffset={14} className={`${isDark ? "bg-[#1f2128] border border-white/10 text-[#ededed]" : "bg-white border border-black/5 text-gray-900"} rounded-lg px-3 py-1.5`}><p className="text-[12px] font-medium">{label}</p></TooltipContent>
             </Tooltip>
         </TooltipProvider>
     );
@@ -216,11 +216,11 @@ function SplitToolButton({ isDark, icon, label, active = false, onClick, dropdow
             <ToolButton isDark={isDark} icon={icon} label={label} active={active} onClick={onClick} />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <button className={`w-[14px] h-[32px] flex items-center justify-center rounded-[6px] hover:bg-white/10 transition-all cursor-pointer outline-none focus:outline-none ${active ? "opacity-100 text-white" : "opacity-40 text-[#a3a3a3] hover:opacity-100"}`}>
+                    <button className={`w-[14px] h-[32px] flex items-center justify-center rounded-[8px] hover:bg-white/10 transition-all cursor-pointer outline-none focus:outline-none ${active ? "opacity-100 text-white" : "opacity-40 text-[#a3a3a3] hover:opacity-100"}`}>
                         <ChevronUp size={10} strokeWidth={2.5} />
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" sideOffset={10} className={`rounded-[12px] p-1.5 border shadow-xl min-w-[140px] bg-[#1f2128] border-white/10 text-[#ededed]`}>
+                <DropdownMenuContent align="center" sideOffset={10} className={`rounded-[8px] p-1.5 border min-w-[140px] bg-[#1f2128] border-white/10 text-[#ededed]`}>
                     {dropdownItems}
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -228,21 +228,22 @@ function SplitToolButton({ isDark, icon, label, active = false, onClick, dropdow
     );
 }
 
-function CommentPin({ author, active, onClick }: any) {
+function CommentPin({ author = "User", active, onClick }: any) {
     const avatarColor = useMemo(() => {
         const colors = ['#FF5C00', '#0ACF83', '#1ABCFE', '#A259FF', '#F24E1E'];
+        const safeAuthor = author || "User";
         let hash = 0;
-        for (let i = 0; i < author.length; i++) hash = author.charCodeAt(i) + ((hash << 5) - hash);
+        for (let i = 0; i < safeAuthor.length; i++) hash = safeAuthor.charCodeAt(i) + ((hash << 5) - hash);
         return colors[Math.abs(hash) % colors.length];
     }, [author]);
 
     return (
         <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-bold shadow-lg cursor-pointer border-2 transition-transform ${active ? 'border-blue-500 scale-110' : 'border-white hover:scale-110'}`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-bold cursor-pointer border-2 transition-transform ${active ? 'border-blue-500 scale-110' : 'border-white hover:scale-110'}`}
             style={{ backgroundColor: avatarColor }}
             onClick={onClick}
         >
-            {author.charAt(0).toUpperCase()}
+            {(author || "U").charAt(0).toUpperCase()}
         </div>
     );
 }
@@ -250,7 +251,7 @@ function CommentPin({ author, active, onClick }: any) {
 function MinimalistCommentInput({ isDark, value, onValueChange, onSubmit, onCancel, author }: any) {
     const isEmpty = !value.trim();
     return (
-        <div className={`flex items-center gap-2.5 p-2 rounded-xl shadow-2xl border min-w-[320px] ${isDark ? "bg-[#1C1C1E] border-white/10" : "bg-white border-black/10"}`}>
+        <div className={`flex items-center gap-2.5 p-2 rounded-[8px] border min-w-[320px] ${isDark ? "bg-[#1C1C1E] border-white/10" : "bg-white border-black/10"}`}>
             <div className="w-6 h-6 rounded-full flex items-center justify-center bg-blue-500 text-white text-[10px] font-bold shrink-0">
                 {author.charAt(0).toUpperCase()}
             </div>
@@ -269,7 +270,7 @@ function MinimalistCommentInput({ isDark, value, onValueChange, onSubmit, onCanc
             <button
                 onClick={onSubmit}
                 disabled={isEmpty}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${isEmpty ? 'bg-blue-600/30 text-white/50 cursor-not-allowed scale-95' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
+                className={`w-8 h-8 rounded-[8px] flex items-center justify-center transition-all shrink-0 ${isEmpty ? 'bg-blue-600/30 text-white/50 cursor-not-allowed scale-95' : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'}`}
             >
                 <ArrowUp size={18} strokeWidth={2.5} />
             </button>
@@ -331,7 +332,7 @@ function SidebarItem({ isDark, title, subtitle, active, icon, image, indent, vis
     const [hover, setHover] = useState(false);
     return (
         <div
-            className={`group flex items-center h-[34px] rounded-lg cursor-pointer transition-colors ${active ? (isDark ? 'bg-[#2A2A2A]' : 'bg-black/5') : (isDark ? 'hover:bg-[#2A2A2A]/50' : 'hover:bg-black/5')} ${indent ? 'ml-6' : ''}`}
+            className={`group flex items-center h-[34px] rounded-[8px] cursor-pointer transition-colors ${active ? (isDark ? 'bg-[#2A2A2A]' : 'bg-black/5') : (isDark ? 'hover:bg-[#2A2A2A]/50' : 'hover:bg-black/5')} ${indent ? 'ml-6' : ''}`}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             onContextMenu={(e) => {
@@ -400,11 +401,11 @@ function SavedViewItem({ isDark, title, onApply, onDelete, onRename, onUpdate }:
     };
 
     return (
-        <div className={`group flex items-center justify-between px-2 h-[34px] rounded-lg cursor-pointer transition-colors ${isDark ? 'hover:bg-[#2A2A2A]/50' : 'hover:bg-black/5'} ${isEditing ? (isDark ? 'bg-[#2A2A2A]' : 'bg-black/5') : ''}`} onClick={() => !isEditing && onApply()}>
+        <div className={`group flex items-center justify-between px-2 h-[34px] rounded-[8px] cursor-pointer transition-colors ${isDark ? 'hover:bg-[#2A2A2A]/50' : 'hover:bg-black/5'} ${isEditing ? (isDark ? 'bg-[#2A2A2A]' : 'bg-black/5') : ''}`} onClick={() => !isEditing && onApply()}>
             <div className={`flex items-center gap-2.5 overflow-hidden flex-1 ${isDark ? 'text-[#EDEDED]' : 'text-[#11181c]'}`}>
                 <div className="w-[18px] flex items-center justify-center opacity-70"><ImageIcon size={14} /></div>
                 {isEditing ? (
-                    <div className={`flex-1 flex items-center px-1 py-0.5 rounded-md border border-blue-500/30 ${isDark ? 'bg-blue-500/5' : 'bg-blue-500/10'} transition-all`}>
+                    <div className={`flex-1 flex items-center px-1 py-0.5 rounded-[8px] border border-blue-500/30 ${isDark ? 'bg-blue-500/5' : 'bg-blue-500/10'} transition-all`}>
                         <input
                             ref={inputRef}
                             value={editValue}
@@ -428,7 +429,7 @@ function SavedViewItem({ isDark, title, onApply, onDelete, onRename, onUpdate }:
                             <TooltipTrigger asChild>
                                 <span className="text-[13px] truncate">{title}</span>
                             </TooltipTrigger>
-                            <TooltipContent side="right" className={`${isDark ? "bg-[#1f2128] border border-white/10 text-[#ededed]" : "bg-white border border-black/5 text-[#11181c]"} rounded-lg px-2 py-1 shadow-lg z-[100]`}>
+                            <TooltipContent side="right" className={`${isDark ? "bg-[#1f2128] border border-white/10 text-[#ededed]" : "bg-white border border-black/5 text-[#11181c]"} rounded-lg px-2 py-1 z-[100]`}>
                                 <p className="text-[12px]">{title}</p>
                             </TooltipContent>
                         </Tooltip>
@@ -438,23 +439,23 @@ function SavedViewItem({ isDark, title, onApply, onDelete, onRename, onUpdate }:
             <div className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity`} onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className={`w-[24px] h-[24px] flex justify-center items-center rounded-md transition-colors outline-none ${isDark ? 'text-[#687076] hover:text-[#EDEDED] hover:bg-white/10' : 'text-[#8E918F] hover:text-[#11181c] hover:bg-black/5'}`}><MoreHorizontal size={14} /></button>
+                        <button className={`w-[24px] h-[24px] flex justify-center items-center rounded-[8px] transition-colors outline-none ${isDark ? 'text-[#687076] hover:text-[#EDEDED] hover:bg-white/10' : 'text-[#8E918F] hover:text-[#11181c] hover:bg-black/5'}`}><MoreHorizontal size={14} /></button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" sideOffset={4} className={`w-40 rounded-[12px] p-1 border shadow-xl ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/10 text-[#11181c]"}`}>
+                    <DropdownMenuContent align="end" sideOffset={4} className={`w-40 rounded-[8px] p-1 border ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/10 text-[#11181c]"}`}>
                         <DropdownMenuItem
                             onSelect={() => setIsEditing(true)}
-                            className="text-[13px] rounded-md px-2 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"
+                            className="text-[13px] rounded-[8px] px-2 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"
                         >
                             <Edit2 size={14} className="mr-2 opacity-70" />
                             <span>Rename</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={onUpdate} className="text-[13px] rounded-md px-2 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"><RotateCw size={14} className="mr-2 opacity-70" /><span>Update View</span></DropdownMenuItem>
+                        <DropdownMenuItem onClick={onUpdate} className="text-[13px] rounded-[8px] px-2 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"><RotateCw size={14} className="mr-2 opacity-70" /><span>Update View</span></DropdownMenuItem>
                         <DropdownMenuSeparator className={isDark ? "bg-white/10" : "bg-black/5"} />
                         <DropdownMenuItem
                             onClick={onDelete}
-                            className="text-[13px] rounded-md px-2 py-1.5 cursor-pointer text-red-500 hover:bg-red-500/10 focus:bg-red-500/10"
+                            className="text-[13px] rounded-[8px] px-2 py-1.5 cursor-pointer text-red-500 hover:bg-red-500/10 focus:bg-red-500/10"
                         >
-                            <Trash2 size={14} className="mr-2 text-red-500" /><span>Remove</span>
+                            <Trash2 size={14} className="mr-2 text-red-500" /><span>Delete</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -684,7 +685,9 @@ export function CaseVisualizerView({
     setIsDark,
     pointerMode,
     setPointerMode,
-    onInviteClick
+    onInviteClick,
+    comments,
+    setComments
 }: {
     caseData: any;
     onBack: () => void;
@@ -693,6 +696,8 @@ export function CaseVisualizerView({
     pointerMode: 'select' | 'hand' | 'rotate' | 'comments';
     setPointerMode: (mode: 'select' | 'hand' | 'rotate' | 'comments') => void;
     onInviteClick?: () => void;
+    comments: any[];
+    setComments: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
     // UI Interaction state
     const [isHoveringUI, setIsHoveringUI] = useState(false);
@@ -969,7 +974,6 @@ export function CaseVisualizerView({
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, targetId?: string } | null>(null);
-    const [comments, setComments] = useState<Comment[]>([]);
     const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
     const [zoomLevel, setZoomLevel] = useState(100);
     const [showGrid, setShowGrid] = useState(true);
@@ -1321,7 +1325,7 @@ export function CaseVisualizerView({
                             stroke="#000"
                             fill="#FFF"
                             strokeWidth={2}
-                            className="relative drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                            className="relative"
                         />
                     </div>
                 </div>
@@ -1452,15 +1456,15 @@ export function CaseVisualizerView({
                                                 transform: 'scale(1.2)'
                                             }}>
                                                 {isEditing ? (
-                                                    <div className={`flex items-center gap-2 p-1.5 rounded-full border shadow-xl ${isDark ? 'bg-[#1C1C1E] border-white/10' : 'bg-white border-black/10'}`} style={{ minWidth: '180px' }} onPointerDown={(e) => e.stopPropagation()}>
+                                                    <div className={`flex items-center gap-2 p-1.5 rounded-[8px] border ${isDark ? 'bg-[#1C1C1E] border-white/10' : 'bg-white border-black/10'}`} style={{ minWidth: '180px' }} onPointerDown={(e) => e.stopPropagation()}>
                                                         <Popover>
                                                             <PopoverTrigger asChild>
                                                                 <div
-                                                                    className="w-4 h-4 rounded-full cursor-pointer shadow-sm shrink-0 border border-white/20 ml-1 hover:scale-110 transition-transform"
+                                                                    className="w-4 h-4 rounded-full cursor-pointer shrink-0 border border-white/20 ml-1 hover:scale-110 transition-transform"
                                                                     style={{ backgroundColor: mark.color }}
                                                                 />
                                                             </PopoverTrigger>
-                                                            <PopoverContent side="top" className={`w-36 p-2 rounded-xl border shadow-xl z-[100] ${isDark ? 'bg-[#1f2128] border-white/10' : 'bg-white border-black/10'}`}>
+                                                            <PopoverContent side="top" className={`w-36 p-2 rounded-[8px] border z-[100] ${isDark ? 'bg-[#1f2128] border-white/10' : 'bg-white border-black/10'}`}>
                                                                 <div className="grid grid-cols-4 gap-1.5">
                                                                     {['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6B7280', '#FFFFFF'].map(c => (
                                                                         <div
@@ -1495,7 +1499,7 @@ export function CaseVisualizerView({
                                                                 setMarks(prev => prev.map(m => m.id === mark.id ? { ...m, isDraft: false } : m));
                                                                 setEditingMarkId(null);
                                                             }}
-                                                            className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-colors shrink-0"
+                                                            className="w-5 h-5 rounded-[8px] bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors shrink-0"
                                                         >
                                                             <ArrowUp size={12} strokeWidth={3} />
                                                         </button>
@@ -1507,7 +1511,7 @@ export function CaseVisualizerView({
                                                         onPointerLeave={() => setHoveredMarkId(null)}
                                                     >
                                                         <div
-                                                            className={`w-3 h-3 rounded-full border-2 border-white shadow-lg relative flex items-center justify-center transition-all duration-200 ${hoveredMarkId === mark.id ? 'scale-150 brightness-110' : 'group-hover/pin:scale-125'}`}
+                                                            className={`w-3 h-3 rounded-full border-2 border-white relative flex items-center justify-center transition-all duration-200 ${hoveredMarkId === mark.id ? 'scale-150 brightness-110' : 'group-hover/pin:scale-125'}`}
                                                             style={{ backgroundColor: mark.color }}
                                                         >
                                                             <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0.5 h-1 bg-white opacity-0 group-hover/pin:opacity-100 transition-opacity" />
@@ -1542,20 +1546,20 @@ export function CaseVisualizerView({
                                         />
                                         <Html position={measurePoints[measurePoints.length - 1]}>
                                             <div className="flex flex-col items-center translate-y-[-40px]">
-                                                <div className={`px-2 py-1 rounded-lg text-[10px] font-bold border shadow-2xl backdrop-blur-md mb-2 ${isDark ? "bg-[#1C1C1E]/90 border-white/10 text-white" : "bg-white/90 border-black/10 text-black"}`}>
+                                                <div className={`px-2 py-1 rounded-[8px] text-[10px] font-bold border backdrop-blur-md mb-2 ${isDark ? "bg-[#1C1C1E]/90 border-white/10 text-white" : "bg-white/90 border-black/10 text-black"}`}>
                                                     {measurePoints.reduce((acc, p, i) => i === 0 ? 0 : acc + p.distanceTo(measurePoints[i - 1]), 0).toFixed(1)} mm
                                                 </div>
-                                                <div className={`p-1.5 rounded-full border shadow-xl flex items-center gap-1.5 pointer-events-auto backdrop-blur-md ${isDark ? 'bg-[#1C1C1E]/90 border-white/10' : 'bg-white/90 border-black/10'}`}>
+                                                <div className={`p-1.5 rounded-[8px] border flex items-center gap-1.5 pointer-events-auto backdrop-blur-md ${isDark ? 'bg-[#1C1C1E]/90 border-white/10' : 'bg-white/90 border-black/10'}`}>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleSaveMeasurement(); }}
-                                                        className="w-7 h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-lg pointer-events-auto"
+                                                        className="w-7 h-7 rounded-[8px] bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors pointer-events-auto"
                                                         title="Save measurement"
                                                     >
                                                         <Check size={16} strokeWidth={3} />
                                                     </button>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setMeasurePoints([]); }}
-                                                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors pointer-events-auto ${isDark ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/5 text-black/60 hover:text-black'}`}
+                                                        className={`w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors pointer-events-auto ${isDark ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/5 text-black/60 hover:text-black'}`}
                                                         title="Cancel"
                                                     >
                                                         <X size={16} />
@@ -1676,7 +1680,7 @@ export function CaseVisualizerView({
                 <div className="flex items-center gap-3">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <div className="flex items-center gap-1 cursor-pointer group px-2 py-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-1 cursor-pointer group px-2 py-1.5 rounded-[8px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                                 <div className={`w-[18px] h-[18px] flex items-center justify-center transition-colors ${isDark ? "text-[#ededed] group-hover:text-white" : "text-[#11181c]"}`}>
                                     <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M2.5 4C2.5 3.17157 3.17157 2.5 4 2.5C4.82843 2.5 5.5 3.17157 5.5 4V12C5.5 12.8284 4.82843 13.5 4 13.5C3.17157 13.5 2.5 12.8284 2.5 12V4Z" fill="currentColor" />
@@ -1687,8 +1691,8 @@ export function CaseVisualizerView({
                                 <ChevronDown size={14} className={isDark ? "text-[#a3a3a3] group-hover:text-[#ededed]" : "text-[#687076] group-hover:text-[#11181c]"} />
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" sideOffset={8} className={`w-64 rounded-[12px] p-2 border shadow-xl ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
-                            <DropdownMenuItem onClick={onBack} className="text-[13px] rounded-md px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 font-medium">Back to dashboard</DropdownMenuItem>
+                        <DropdownMenuContent align="start" sideOffset={8} className={`w-64 rounded-[8px] p-2 border ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
+                            <DropdownMenuItem onClick={onBack} className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 font-medium">Back to dashboard</DropdownMenuItem>
                             <DropdownMenuSeparator className={isDark ? "bg-white/10" : "bg-black/5"} />
                             <div className="flex items-center gap-3 px-3 py-2">
                                 <div className="w-[32px] h-[32px] rounded-full bg-[#00a8cc] flex items-center justify-center text-white font-bold text-[14px]">N</div>
@@ -1700,38 +1704,38 @@ export function CaseVisualizerView({
                             <DropdownMenuSeparator className={isDark ? "bg-white/10" : "bg-black/5"} />
                             <div className="flex flex-col gap-1 py-1">
                                 <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger className="text-[13px] rounded-md px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2">
+                                    <DropdownMenuSubTrigger className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2">
                                         <div className="flex items-center gap-2 flex-1">
                                             {isDark ? <Moon size={14} className="opacity-70" /> : <Sun size={14} className="opacity-70" />}
                                             <span>Theme</span>
                                         </div>
                                     </DropdownMenuSubTrigger>
                                     <DropdownMenuPortal>
-                                        <DropdownMenuSubContent sideOffset={8} className={`rounded-[12px] p-2 border shadow-xl ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
-                                            <DropdownMenuItem onClick={() => setIsDark(false)} className={`text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 ${!isDark ? 'text-blue-500 font-medium' : ''}`}>
+                                        <DropdownMenuSubContent sideOffset={8} className={`rounded-[8px] p-2 border ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
+                                            <DropdownMenuItem onClick={() => setIsDark(false)} className={`text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 ${!isDark ? 'text-blue-500 font-medium' : ''}`}>
                                                 <Sun size={14} /> <span>Light</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => setIsDark(true)} className={`text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 ${isDark ? 'text-blue-500 font-medium' : ''}`}>
+                                            <DropdownMenuItem onClick={() => setIsDark(true)} className={`text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2 ${isDark ? 'text-blue-500 font-medium' : ''}`}>
                                                 <Moon size={14} /> <span>Dark</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => setIsDark(false)} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2">
+                                            <DropdownMenuItem onClick={() => setIsDark(false)} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 flex items-center gap-2">
                                                 <Monitor size={14} /> <span>System</span>
                                             </DropdownMenuItem>
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
                                 <DropdownMenuSub>
-                                    <DropdownMenuSubTrigger className="text-[13px] rounded-md px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Language</span></DropdownMenuSubTrigger>
+                                    <DropdownMenuSubTrigger className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Language</span></DropdownMenuSubTrigger>
                                     <DropdownMenuPortal>
-                                        <DropdownMenuSubContent sideOffset={8} className={`rounded-[12px] p-2 border shadow-xl ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
-                                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">English</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">Español</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">Português</DropdownMenuItem>
+                                        <DropdownMenuSubContent sideOffset={8} className={`rounded-[8px] p-2 border ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}>
+                                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">English</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">Español</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10">Português</DropdownMenuItem>
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
-                                <DropdownMenuItem className="text-[13px] rounded-md px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Settings</span></DropdownMenuItem>
-                                <DropdownMenuItem className="text-[13px] rounded-md px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Logout</span></DropdownMenuItem>
+                                <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Settings</span></DropdownMenuItem>
+                                <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Logout</span></DropdownMenuItem>
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -1754,9 +1758,9 @@ export function CaseVisualizerView({
                                     <ChevronDown size={14} className={`transition-transform duration-200 group-data-[state=open]/case:rotate-180 ${isDark ? "text-[#a3a3a3]" : "text-[#687076]"}`} />
                                 </div>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" sideOffset={12} className={`w-[360px] rounded-[24px] p-0 border shadow-2xl overflow-hidden ${isDark ? "bg-[#18191B] border-white/10 text-[#ededed]" : "bg-white border-black/10 text-[#11181c]"}`}>
+                            <DropdownMenuContent align="start" sideOffset={12} className={`w-[360px] rounded-[8px] p-0 border overflow-hidden ${isDark ? "bg-[#18191B] border-white/10 text-[#ededed]" : "bg-white border-black/10 text-[#11181c]"}`}>
                                 <div className={`px-4 py-3 flex items-center gap-2.5 border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
-                                    <div className={`flex items-center gap-2 px-3 py-2 rounded-[10px] flex-1 transition-all ${isDark ? "bg-white/5 focus-within:bg-white/10" : "bg-black/5 focus-within:bg-black/10"}`}>
+                                    <div className={`flex items-center gap-2 px-3 py-2 rounded-[8px] flex-1 transition-all ${isDark ? "bg-white/5 focus-within:bg-white/10" : "bg-black/5 focus-within:bg-black/10"}`}>
                                         <Search size={13} className="opacity-30" />
                                         <input
                                             type="text"
@@ -1767,7 +1771,7 @@ export function CaseVisualizerView({
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className={`h-[32px] w-[32px] rounded-[10px] flex items-center justify-center transition-all ${isDark ? "bg-white/5 hover:bg-white/10 text-white/60" : "bg-black/5 hover:bg-black/10 text-black/60"}`}>
+                                            <button className={`h-[32px] w-[32px] rounded-[8px] flex items-center justify-center transition-all ${isDark ? "bg-white/5 hover:bg-white/10 text-white/60" : "bg-black/5 hover:bg-black/10 text-black/60"}`}>
                                                 <SlidersHorizontal size={13} />
                                             </button>
                                         </DropdownMenuTrigger>
@@ -1785,10 +1789,10 @@ export function CaseVisualizerView({
                                         { id: '3', name: "MNT AN1309531622", date: "12 Mar 2024", active: true },
                                         { id: '4', name: "ALV AN1309531641", date: "10 Mar 2024", active: false },
                                     ].map(item => (
-                                        <DropdownMenuItem key={item.id} className={`flex flex-col items-start gap-0.5 rounded-[12px] px-3 py-1.5 cursor-pointer transition-colors duration-200 outline-none mb-0.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] focus:bg-black/[0.02] dark:focus:bg-white/[0.02]`}>
+                                        <DropdownMenuItem key={item.id} className={`flex flex-col items-start gap-0.5 rounded-[8px] px-3 py-1.5 cursor-pointer transition-colors duration-200 outline-none mb-0.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] focus:bg-black/[0.02] dark:focus:bg-white/[0.02]`}>
                                             <div className="flex items-center justify-between w-full">
                                                 <span className={`text-[12.5px] font-semibold ${item.active ? 'text-blue-500' : (isDark ? 'text-white/90' : 'text-black/90')}`}>{item.name}</span>
-                                                {item.active && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />}
+                                                {item.active && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
                                             </div>
                                             <div className="flex items-center gap-1.5 opacity-30">
                                                 <Clock size={8} />
@@ -1803,9 +1807,9 @@ export function CaseVisualizerView({
                 </div>
 
                 <div className="flex items-center absolute left-1/2 -translate-x-1/2 pointer-events-auto">
-                    <div className={`p-1 rounded-full flex items-center h-[36px] shadow-sm border ${isDark ? "bg-[#1C1C1E] border-white/5" : "bg-white border-black/5"}`}>
-                        <button onClick={() => setActiveMode('canvas')} className={`h-[28px] px-4 rounded-full text-[13px] font-medium flex items-center justify-center min-w-[80px] transition-all duration-200 ${activeMode === 'canvas' ? (isDark ? "bg-[#333333] text-white shadow-sm" : "bg-black text-white shadow-sm") : (isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]")}`}>Canvas</button>
-                        <button onClick={() => setActiveMode('copilot')} className={`h-[28px] px-4 rounded-full text-[13px] font-medium flex items-center justify-center min-w-[80px] transition-all duration-200 ${activeMode === 'copilot' ? (isDark ? "bg-[#333333] text-white shadow-sm" : "bg-black text-white shadow-sm") : (isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]")}`}>Copilot</button>
+                    <div className={`p-1 rounded-[8px] flex items-center h-[36px] border ${isDark ? "bg-[#1C1C1E] border-white/5" : "bg-white border-black/5"}`}>
+                        <button onClick={() => setActiveMode('canvas')} className={`h-[28px] px-4 rounded-[8px] text-[13px] font-medium flex items-center justify-center min-w-[80px] transition-all duration-200 ${activeMode === 'canvas' ? (isDark ? "bg-[#333333] text-white" : "bg-black text-white") : (isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]")}`}>Canvas</button>
+                        <button onClick={() => setActiveMode('copilot')} className={`h-[28px] px-4 rounded-[8px] text-[13px] font-medium flex items-center justify-center min-w-[80px] transition-all duration-200 ${activeMode === 'copilot' ? (isDark ? "bg-[#333333] text-white" : "bg-black text-white") : (isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]")}`}>Copilot</button>
                     </div>
                 </div>
 
@@ -1819,7 +1823,7 @@ export function CaseVisualizerView({
                                         <div className={`w-[32px] h-[32px] rounded-full border-2 flex items-center justify-center transition-all duration-200 group-hover:ring-2 group-hover:ring-[#FF007A] group-hover:ring-offset-1 ${isDark ? "border-[#0f1115] bg-[#323335] text-white ring-offset-[#0f1115]" : "border-[#f9f9f9] bg-black/10 text-black ring-offset-white"}`}><span className="font-medium text-[14px]">A</span></div>
                                     </div>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" sideOffset={10} className={`p-3 rounded-[12px] border shadow-xl min-w-[120px] ${isDark ? "bg-[#18191B] border-white/10 text-white" : "bg-white border-black/10 text-black"}`}><div className="flex flex-col items-start gap-0.5"><span className="text-[14px] font-semibold">Alex Salmerón</span><span className={`text-[12px] ${isDark ? "text-white/40" : "text-black/40"}`}>You</span></div></TooltipContent>
+                                <TooltipContent side="bottom" sideOffset={10} className={`p-3 rounded-[12px] border min-w-[120px] ${isDark ? "bg-[#18191B] border-white/10 text-white" : "bg-white border-black/10 text-black"}`}><div className="flex flex-col items-start gap-0.5"><span className="text-[14px] font-semibold">Alex Salmerón</span><span className={`text-[12px] ${isDark ? "text-white/40" : "text-black/40"}`}>You</span></div></TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
                     </div>
@@ -1828,7 +1832,7 @@ export function CaseVisualizerView({
 
             {/* SIDEBAR LEFT */}
             <div
-                className={`absolute top-20 left-4 z-10 flex-col flex rounded-[12px] border ${isDark ? "bg-[#141516] border-[#2A2A2A]" : "bg-[#FAFAFA] border-black/10"} shadow-xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${sidebarCollapsed ? 'w-fit h-[44px]' : (activeSidebarTab === 'layers' ? 'w-[260px] h-[calc(100vh-120px)]' : 'w-[260px] h-fit max-h-[calc(100vh-120px)]')}`}
+                className={`absolute top-20 left-4 z-10 flex-col flex rounded-[8px] border ${isDark ? "bg-[#141516] border-[#2A2A2A]" : "bg-[#FAFAFA] border-black/10"} overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${sidebarCollapsed ? 'w-fit h-[44px]' : (activeSidebarTab === 'layers' ? 'w-[260px] h-[calc(100vh-120px)]' : 'w-[260px] h-fit max-h-[calc(100vh-120px)]')}`}
                 onMouseEnter={() => setIsHoveringUI(true)}
                 onMouseLeave={() => setIsHoveringUI(false)}
             >
@@ -1836,7 +1840,7 @@ export function CaseVisualizerView({
                     <span onClick={(e) => { e.stopPropagation(); setActiveSidebarTab('layers'); setSidebarCollapsed(false); }} className={`text-[12px] font-medium cursor-pointer whitespace-nowrap transition-colors ${(!sidebarCollapsed && activeSidebarTab === 'layers') ? (isDark ? 'text-[#EDEDED]' : 'text-[#11181c]') : (isDark ? 'text-[#687076] hover:text-[#EDEDED]' : 'text-[#8E918F] hover:text-[#11181c]')}`}>Layers</span>
                     <span onClick={(e) => { e.stopPropagation(); setActiveSidebarTab('views'); setSidebarCollapsed(false); }} className={`text-[12px] font-medium cursor-pointer whitespace-nowrap transition-colors ${(!sidebarCollapsed && activeSidebarTab === 'views') ? (isDark ? 'text-[#EDEDED]' : 'text-[#11181c]') : (isDark ? 'text-[#687076] hover:text-[#EDEDED]' : 'text-[#8E918F] hover:text-[#11181c]')}`}>Saved Views</span>
                     {!sidebarCollapsed && <div className="flex-1" />}
-                    <div className={`p-1 rounded-md transition-all duration-500 flex items-center justify-center ${isDark ? "text-[#687076] group-hover/header:text-[#EDEDED]" : "text-[#8E918F] group-hover/header:text-[#11181c]"}`}>
+                    <div className={`p-1 rounded-[8px] transition-all duration-500 flex items-center justify-center ${isDark ? "text-[#687076] group-hover/header:text-[#EDEDED]" : "text-[#8E918F] group-hover/header:text-[#11181c]"}`}>
                         <PanelLeft size={16} />
                     </div>
                 </div>
@@ -1872,7 +1876,7 @@ export function CaseVisualizerView({
                             <>
                                 <button
                                     onClick={() => { saveCurrentView(); }}
-                                    className={`flex items-center gap-2 w-full px-3 py-2 mb-2 rounded-lg border border-dashed transition-colors ${isDark ? 'border-white/10 hover:bg-white/5 text-[#EDEDED]' : 'border-black/10 hover:bg-black/5 text-[#11181c]'}`}
+                                    className={`flex items-center gap-2 w-full px-3 py-2 mb-2 rounded-[8px] border border-dashed transition-colors ${isDark ? 'border-white/10 hover:bg-white/5 text-[#EDEDED]' : 'border-black/10 hover:bg-black/5 text-[#11181c]'}`}
                                 >
                                     <Plus size={14} className="opacity-70" />
                                     <span className="text-[13px] font-medium">New View</span>
@@ -1900,12 +1904,12 @@ export function CaseVisualizerView({
             {/* DETAILS SIDEBAR */}
             {(selectedAnatomyId || activeTool === 'comments' || activeTool === 'notes' || activeTool === 'marks' || activeTool === 'measures') && (
                 <div
-                    className={`absolute top-20 right-4 z-10 flex-col flex rounded-[12px] border ${isDark ? "bg-[#141516] border-[#2A2A2A]" : "bg-[#FAFAFA] border-black/10"} shadow-xl overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${detailsCollapsed ? 'w-fit h-[44px]' : (activeTool === 'notes' ? 'w-[320px] h-[calc(100vh-120px)]' : 'w-[260px] h-fit max-h-[calc(100vh-120px)]')}`}
+                    className={`absolute top-20 right-4 z-10 flex-col flex rounded-[8px] border ${isDark ? "bg-[#141516] border-[#2A2A2A]" : "bg-[#FAFAFA] border-black/10"} overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${detailsCollapsed ? 'w-fit h-[44px]' : (activeTool === 'notes' ? 'w-[320px] h-[calc(100vh-120px)]' : 'w-[260px] h-fit max-h-[calc(100vh-120px)]')}`}
                     onMouseEnter={() => setIsHoveringUI(true)}
                     onMouseLeave={() => setIsHoveringUI(false)}
                 >
                     <div onClick={() => { setDetailsCollapsed(!detailsCollapsed); }} className={`flex items-center gap-4 px-4 h-[44px] shrink-0 cursor-pointer group/header ${!detailsCollapsed ? 'border-b transition-colors' : ''} ${isDark ? "border-[#2A2A2A]" : "border-black/5"}`}>
-                        <div className={`p-0.5 rounded-md transition-all duration-500 flex items-center justify-center ${isDark ? "text-[#687076] group-hover/header:text-[#EDEDED]" : "text-[#8E918F] group-hover/header:text-[#11181c]"}`}>
+                        <div className={`p-0.5 rounded-[8px] transition-all duration-500 flex items-center justify-center ${isDark ? "text-[#687076] group-hover/header:text-[#EDEDED]" : "text-[#8E918F] group-hover/header:text-[#11181c]"}`}>
                             <PanelRight size={16} />
                         </div>
                         <span className={`text-[12px] font-bold tracking-tight transition-all duration-500 whitespace-nowrap ${(!detailsCollapsed) ? (isDark ? "text-white" : "text-[#11181C]") : (isDark ? "text-[#687076]" : "text-[#8E918F]")}`}>
@@ -1918,7 +1922,7 @@ export function CaseVisualizerView({
                                     const anyVisible = marks.some(m => m.visible);
                                     setMarks(prev => prev.map(m => ({ ...m, visible: !anyVisible })));
                                 }}
-                                className={`ml-auto px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
+                                className={`ml-auto px-2 py-1 rounded-[8px] text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
                             >
                                 {marks.some(m => m.visible) ? "Hide marks" : "Show marks"}
                             </button>
@@ -1930,7 +1934,7 @@ export function CaseVisualizerView({
                                     const anyVisible = measurements.some(m => m.visible);
                                     setMeasurements(prev => prev.map(m => ({ ...m, visible: !anyVisible })));
                                 }}
-                                className={`ml-auto px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
+                                className={`ml-auto px-2 py-1 rounded-[8px] text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
                             >
                                 {measurements.some(m => m.visible) ? "Hide measures" : "Show measures"}
                             </button>
@@ -1941,7 +1945,7 @@ export function CaseVisualizerView({
                                     e.stopPropagation();
                                     setShowAllComments(!showAllComments);
                                 }}
-                                className={`ml-auto px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
+                                className={`ml-auto px-2 py-1 rounded-[8px] text-[10px] font-bold uppercase tracking-wider transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
                             >
                                 {showAllComments ? "Hide comments" : "Show comments"}
                             </button>
@@ -1969,18 +1973,18 @@ export function CaseVisualizerView({
                                                     key={mark.id}
                                                     onMouseEnter={() => setHoveredMarkId(mark.id)}
                                                     onMouseLeave={() => setHoveredMarkId(null)}
-                                                    className={`group flex items-center gap-2 py-1 pl-2 pr-1 rounded-lg transition-colors ${hoveredMarkId === mark.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
+                                                    className={`group flex items-center gap-2 py-1 pl-2 pr-1 rounded-[8px] transition-colors ${hoveredMarkId === mark.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
                                                 >
                                                     {/* Main pill container */}
-                                                    <div className={`flex flex-1 items-center h-[28px] rounded-md transition-all overflow-hidden ${!effectiveVisible ? 'opacity-40' : ''} ${isDark ? 'bg-white/[0.03] group-hover:bg-white/[0.05]' : 'bg-black/[0.03] group-hover:bg-black/[0.05]'}`}>
+                                                    <div className={`flex flex-1 items-center h-[28px] rounded-[8px] transition-all overflow-hidden ${!effectiveVisible ? 'opacity-40' : ''} ${isDark ? 'bg-white/[0.03] group-hover:bg-white/[0.05]' : 'bg-black/[0.03] group-hover:bg-black/[0.05]'}`}>
                                                         <Popover>
                                                             <PopoverTrigger asChild>
                                                                 <div
-                                                                    className="w-[16px] h-[16px] rounded-full cursor-pointer ml-1 shadow-sm shrink-0 border border-black/10"
+                                                                    className="w-[16px] h-[16px] rounded-full cursor-pointer ml-1 shrink-0 border border-black/10"
                                                                     style={{ backgroundColor: mark.color }}
                                                                 />
                                                             </PopoverTrigger>
-                                                            <PopoverContent side="left" align="start" className={`w-36 p-2 rounded-xl border shadow-xl ${isDark ? 'bg-[#1f2128] border-white/10' : 'bg-white border-black/10'}`}>
+                                                            <PopoverContent side="left" align="start" className={`w-36 p-2 rounded-[8px] border ${isDark ? 'bg-[#1f2128] border-white/10' : 'bg-white border-black/10'}`}>
                                                                 <div className="grid grid-cols-4 gap-1.5">
                                                                     {['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6B7280', '#FFFFFF'].map(c => (
                                                                         <div
@@ -2028,18 +2032,18 @@ export function CaseVisualizerView({
                                                             onClick={() => {
                                                                 setMarks(prev => prev.map(m => m.id === mark.id ? { ...m, visible: !m.visible } : m));
                                                             }}
-                                                            className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'}`}
+                                                            className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'}`}
                                                         >
                                                             {effectiveVisible ? <Eye size={14} /> : <EyeOff size={14} className="opacity-40" />}
                                                         </button>
 
                                                         <Popover>
                                                             <PopoverTrigger asChild>
-                                                                <button className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}>
+                                                                <button className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}>
                                                                     <Info size={14} className="text-white" />
                                                                 </button>
                                                             </PopoverTrigger>
-                                                            <PopoverContent side="left" align="start" className={`w-48 p-3 rounded-xl border shadow-xl ${isDark ? 'bg-[#1f2128] border-white/10 text-[#ededed]' : 'bg-white border-black/10 text-[#11181c]'}`}>
+                                                            <PopoverContent side="left" align="start" className={`w-48 p-3 rounded-[8px] border ${isDark ? 'bg-[#1f2128] border-white/10 text-[#ededed]' : 'bg-white border-black/10 text-[#11181c]'}`}>
                                                                 <div className="flex flex-col gap-2">
                                                                     <span className="text-[11px] font-bold opacity-40 uppercase tracking-widest">Description</span>
                                                                     <textarea
@@ -2058,7 +2062,7 @@ export function CaseVisualizerView({
                                                             onClick={() => {
                                                                 setMarks(prev => prev.filter(m => m.id !== mark.id));
                                                             }}
-                                                            className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
+                                                            className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
                                                         >
                                                             <Trash2 size={14} />
                                                         </button>
@@ -2081,9 +2085,9 @@ export function CaseVisualizerView({
                                                 key={m.id}
                                                 onMouseEnter={() => setHoveredMeasureId(m.id)}
                                                 onMouseLeave={() => setHoveredMeasureId(null)}
-                                                className={`group flex items-center gap-2 py-1 pl-2 pr-1 rounded-lg transition-colors ${hoveredMeasureId === m.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
+                                                className={`group flex items-center gap-2 py-1 pl-2 pr-1 rounded-[8px] transition-colors ${hoveredMeasureId === m.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
                                             >
-                                                <div className={`flex flex-1 items-center h-[28px] rounded-md transition-all overflow-hidden ${!m.visible ? 'opacity-40' : ''} ${isDark ? 'bg-white/[0.03] group-hover:bg-white/[0.05]' : 'bg-black/[0.03] group-hover:bg-black/[0.05]'}`}>
+                                                <div className={`flex flex-1 items-center h-[28px] rounded-[8px] transition-all overflow-hidden ${!m.visible ? 'opacity-40' : ''} ${isDark ? 'bg-white/[0.03] group-hover:bg-white/[0.05]' : 'bg-black/[0.03] group-hover:bg-black/[0.05]'}`}>
                                                     <div className="w-4 h-4 rounded-full bg-blue-500 scale-75 ml-1 shrink-0" />
                                                     <input
                                                         value={m.name}
@@ -2105,17 +2109,17 @@ export function CaseVisualizerView({
                                                         onClick={() => {
                                                             setMeasurements(prev => prev.map(mm => mm.id === m.id ? { ...mm, visible: !mm.visible } : mm));
                                                         }}
-                                                        className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'}`}
+                                                        className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-black'}`}
                                                     >
                                                         {m.visible ? <Eye size={14} /> : <EyeOff size={14} className="opacity-40" />}
                                                     </button>
                                                     <Popover>
                                                         <PopoverTrigger asChild>
-                                                            <button className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}>
+                                                            <button className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}>
                                                                 <Info size={14} className={isDark ? 'text-white' : 'text-black'} />
                                                             </button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent side="left" align="start" className={`w-56 p-3 rounded-xl border shadow-xl ${isDark ? 'bg-[#1f2128] border-white/10 text-[#ededed]' : 'bg-white border-black/10 text-[#11181c]'}`}>
+                                                        <PopoverContent side="left" align="start" className={`w-56 p-3 rounded-[8px] border ${isDark ? 'bg-[#1f2128] border-white/10 text-[#ededed]' : 'bg-white border-black/10 text-[#11181c]'}`}>
                                                             <div className="flex flex-col gap-2.5">
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <span className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Total Distance</span>
@@ -2134,7 +2138,7 @@ export function CaseVisualizerView({
                                                                                     key={i}
                                                                                     onMouseEnter={() => setHoveredSegmentIndex(segmentIndex)}
                                                                                     onMouseLeave={() => setHoveredSegmentIndex(null)}
-                                                                                    className={`flex justify-between items-center text-[11px] py-0.5 px-1.5 rounded transition-colors ${hoveredSegmentIndex === segmentIndex ? (isDark ? 'bg-white/10' : 'bg-black/5') : ''}`}
+                                                                                    className={`flex justify-between items-center text-[11px] py-0.5 px-1.5 rounded-[8px] transition-colors ${hoveredSegmentIndex === segmentIndex ? (isDark ? 'bg-white/10' : 'bg-black/5') : ''}`}
                                                                                 >
                                                                                     <span className="opacity-40">Segment {i}</span>
                                                                                     <span className="font-medium whitespace-nowrap">{dist.toFixed(2)} mm</span>
@@ -2150,7 +2154,7 @@ export function CaseVisualizerView({
                                                         onClick={() => {
                                                             setMeasurements(prev => prev.filter(mm => mm.id !== m.id));
                                                         }}
-                                                        className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
+                                                        className={`p-1 rounded-[8px] transition-colors ${isDark ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-100 text-red-600'}`}
                                                     >
                                                         <Trash2 size={14} />
                                                     </button>
@@ -2174,16 +2178,16 @@ export function CaseVisualizerView({
                                                     setActiveCommentId(comment.id);
                                                     setSelectedAnatomyId(null);
                                                 }}
-                                                className={`py-1 px-1.5 rounded-lg transition-all cursor-pointer ${activeCommentId === comment.id ? (isDark ? 'bg-white/[0.04]' : 'bg-black/[0.04]') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
+                                                className={`py-1 px-1.5 rounded-[8px] transition-all cursor-pointer ${activeCommentId === comment.id ? (isDark ? 'bg-white/[0.04]' : 'bg-black/[0.04]') : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]')}`}
                                             >
                                                 <div className="flex gap-2">
-                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-blue-500 text-[9px] text-white font-bold uppercase shrink-0 mt-0.5">
-                                                        {comment.author.charAt(0)}
+                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${comment.color || 'bg-blue-500'} text-[9px] text-white font-bold uppercase shrink-0 mt-0.5`}>
+                                                        {comment.initials || (comment.user || comment.author || '?').charAt(0)}
                                                     </div>
                                                     <div className="flex flex-col min-w-0 flex-1">
                                                         <div className="flex items-center gap-1.5 mb-0.5">
-                                                            <span className={`text-[11px] font-bold truncate ${isDark ? 'text-white' : 'text-black'}`}>{comment.author}</span>
-                                                            <span className="text-[9px] opacity-30">{comment.timestamp}</span>
+                                                            <span className={`text-[11px] font-bold truncate ${isDark ? 'text-white' : 'text-black'}`}>{comment.user || comment.author}</span>
+                                                            <span className="text-[9px] opacity-30">{comment.time || comment.timestamp}</span>
                                                         </div>
                                                         <p className={`text-[11px] leading-snug break-words line-clamp-2 ${isDark ? 'text-white/50' : 'text-black/50'}`}>
                                                             {comment.text}
@@ -2218,7 +2222,7 @@ export function CaseVisualizerView({
                                                 onClick={() => {
                                                     setNotes(prev => prev.map(n => n.id === activeNoteId ? { ...n, content: noteDraft, date: new Date().toLocaleString() } : n));
                                                 }}
-                                                className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
+                                                className={`p-1.5 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
                                             >
                                                 <Save size={14} />
                                             </button>
@@ -2233,7 +2237,7 @@ export function CaseVisualizerView({
                                                     a.download = `Case_Notes_${new Date().toISOString().slice(0, 10)}.txt`;
                                                     a.click();
                                                 }}
-                                                className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
+                                                className={`p-1.5 rounded-[8px] transition-colors ${isDark ? 'hover:bg-white/10 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
                                             >
                                                 <FileDown size={14} />
                                             </button>
@@ -2262,7 +2266,7 @@ export function CaseVisualizerView({
                                             <div
                                                 key={note.id}
                                                 onClick={() => setActiveNoteId(note.id)}
-                                                className={`py-2 px-2 rounded-lg cursor-pointer transition-all ${activeNoteId === note.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.03]')}`}
+                                                className={`py-2 px-2 rounded-[8px] cursor-pointer transition-all ${activeNoteId === note.id ? (isDark ? 'bg-white/5' : 'bg-black/5') : (isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.03]')}`}
                                             >
                                                 <div className="flex items-center justify-between mb-0.5">
                                                     <span className={`text-[11px] font-semibold truncate ${isDark ? 'text-white/90' : 'text-black/90'}`}>{note.title}</span>
@@ -2284,7 +2288,7 @@ export function CaseVisualizerView({
                                             <div className="flex flex-col gap-0 -mt-1">
                                                 <button
                                                     onClick={() => { if (pointerMode === 'hand') return; setPropertiesExpanded(!propertiesExpanded); }}
-                                                    className={`flex items-center justify-between py-1 px-2 -mx-2 rounded-md transition-all group ${isDark ? "hover:bg-white/5" : "hover:bg-black/5"}`}
+                                                    className={`flex items-center justify-between py-1 px-2 -mx-2 rounded-[8px] transition-all group ${isDark ? "hover:bg-white/5" : "hover:bg-black/5"}`}
                                                 >
                                                     <span className={`text-[12px] font-semibold ${isDark ? "text-[#EDEDED]" : "text-[#11181C]"}`}>Properties</span>
                                                     {propertiesExpanded ? <ChevronUp size={14} className="opacity-30 group-hover:opacity-100" /> : <ChevronDown size={14} className="opacity-30 group-hover:opacity-100" />}
@@ -2314,7 +2318,7 @@ export function CaseVisualizerView({
                                     <div className="flex flex-col gap-0">
                                         <button
                                             onClick={() => { if (pointerMode === 'hand') return; setAppearanceExpanded(!appearanceExpanded); }}
-                                            className={`flex items-center justify-between py-1 px-2 -mx-2 rounded-md transition-all group ${isDark ? "hover:bg-white/5" : "hover:bg-black/5"}`}
+                                            className={`flex items-center justify-between py-1 px-2 -mx-2 rounded-[8px] transition-all group ${isDark ? "hover:bg-white/5" : "hover:bg-black/5"}`}
                                         >
                                             <span className={`text-[12px] font-semibold ${isDark ? "text-[#EDEDED]" : "text-[#11181C]"}`}>Appearance</span>
                                             {appearanceExpanded ? <ChevronUp size={14} className="opacity-30 group-hover:opacity-100" /> : <ChevronDown size={14} className="opacity-30 group-hover:opacity-100" />}
@@ -2322,7 +2326,7 @@ export function CaseVisualizerView({
                                         <div className={`flex flex-col gap-2 py-0.5 px-1 overflow-hidden transition-all duration-300 ${appearanceExpanded ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                             <div className="flex justify-between items-center h-[24px]">
                                                 <span className={`text-[12px] opacity-40 font-medium ${isDark ? "text-white" : "text-black"}`}>Opacity</span>
-                                                <div className={`group relative w-[60px] h-[22px] rounded-md border flex items-center transition-all px-1.5 gap-2 ${isDark ? "bg-black/20 border-white/10 hover:border-white/20 focus-within:border-blue-500/50" : "bg-white border-black/10 hover:border-black/20 focus-within:border-blue-500/50"}`}>
+                                                <div className={`group relative w-[60px] h-[22px] rounded-[8px] border flex items-center transition-all px-1.5 gap-2 ${isDark ? "bg-black/20 border-white/10 hover:border-white/20 focus-within:border-blue-500/50" : "bg-white border-black/10 hover:border-black/20 focus-within:border-blue-500/50"}`}>
                                                     <div className="flex items-center justify-center shrink-0">
                                                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-40">
                                                             <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" />
@@ -2360,7 +2364,7 @@ export function CaseVisualizerView({
                 onMouseEnter={() => setIsHoveringUI(true)}
                 onMouseLeave={() => setIsHoveringUI(false)}
             >
-                <div className={`flex items-center p-1 gap-1 rounded-[14px] border shadow-xl bg-[#1C1C1E] border-white/5`}>
+                <div className={`flex items-center p-1 gap-1 rounded-[8px] border bg-[#1C1C1E] border-white/5`}>
                     <SplitToolButton
                         isDark={isDark}
                         icon={pointerMode === 'hand' ? <Hand size={16} strokeWidth={1.5} /> : <MousePointer2 size={16} strokeWidth={1.5} />}
@@ -2375,11 +2379,11 @@ export function CaseVisualizerView({
                         }}
                         dropdownItems={
                             <>
-                                <DropdownMenuItem onClick={() => { setPointerMode('select'); setActiveTool(null); }} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => { setPointerMode('select'); setActiveTool(null); }} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center justify-between">
                                     <div className="flex items-center gap-2"><MousePointer2 size={14} className="opacity-70" /><span>Selection</span></div>
                                     <span className="opacity-40 text-[11px]">M</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => { setPointerMode('hand'); setActiveTool(null); }} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center justify-between">
+                                <DropdownMenuItem onClick={() => { setPointerMode('hand'); setActiveTool(null); }} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center justify-between">
                                     <div className="flex items-center gap-2"><Hand size={14} className="opacity-70" /><span>Hand</span></div>
                                     <span className="opacity-40 text-[11px]">H</span>
                                 </DropdownMenuItem>
@@ -2416,17 +2420,17 @@ export function CaseVisualizerView({
                                 <MoreHorizontal size={16} strokeWidth={1.5} />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="center" sideOffset={10} className={`rounded-[12px] p-1.5 border shadow-xl min-w-[160px] bg-[#1f2128] border-white/10 text-[#ededed]`}>
-                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><Maximize size={14} className="opacity-70" /><span>Full Screen</span></DropdownMenuItem>
-                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><Camera size={14} className="opacity-70" /><span>Screenshot</span></DropdownMenuItem>
-                            <DropdownMenuItem className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><HelpCircle size={14} className="opacity-70" /><span>Guided Tour</span></DropdownMenuItem>
+                        <DropdownMenuContent align="center" sideOffset={10} className={`rounded-[8px] p-1.5 border min-w-[160px] bg-[#1f2128] border-white/10 text-[#ededed]`}>
+                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><Maximize size={14} className="opacity-70" /><span>Full Screen</span></DropdownMenuItem>
+                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><Camera size={14} className="opacity-70" /><span>Screenshot</span></DropdownMenuItem>
+                            <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-white/10 focus:bg-white/10 flex items-center gap-2" onClick={() => { }}><HelpCircle size={14} className="opacity-70" /><span>Guided Tour</span></DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
 
                 {activeMode === 'copilot' && (
                     <div className="w-[600px] absolute -top-14 left-1/2 -translate-x-1/2 mb-2">
-                        <div className={`flex items-center gap-3 px-4 h-[52px] rounded-full backdrop-blur-2xl border shadow-[0_8px_30px_rgb(0,0,0,0.12)] ${isDark ? "bg-[#16181A]/90 border-white/10" : "bg-white/95 border-black/10"}`}>
+                        <div className={`flex items-center gap-3 px-4 h-[52px] rounded-[8px] backdrop-blur-2xl border ${isDark ? "bg-[#16181A]/90 border-white/10" : "bg-white/95 border-black/10"}`}>
                             <input
                                 ref={copilotInputRef}
                                 type="text"
@@ -2440,7 +2444,7 @@ export function CaseVisualizerView({
                                 {copilotText.trim() ? (
                                     <button
                                         onClick={() => { handleCopilotCommand({ key: 'Enter' } as any); }}
-                                        className="w-[32px] h-[32px] rounded-full flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 shadow-sm outline-none border-none"
+                                        className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 outline-none border-none"
                                     >
                                         <ArrowUp size={18} strokeWidth={2.5} />
                                     </button>
@@ -2449,21 +2453,21 @@ export function CaseVisualizerView({
                                         <TooltipProvider delayDuration={200}>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <button className={`w-[32px] h-[32px] rounded-full flex items-center justify-center transition-all duration-300 ${isDark ? "text-blue-400 hover:bg-white/10" : "text-blue-600 hover:bg-black/5"}`}>
+                                                    <button className={`w-[32px] h-[32px] rounded-[8px] flex items-center justify-center transition-all duration-300 ${isDark ? "text-blue-400 hover:bg-white/10" : "text-blue-600 hover:bg-black/5"}`}>
                                                         <Mic size={18} strokeWidth={2} className="opacity-80" />
                                                     </button>
                                                 </TooltipTrigger>
-                                                <TooltipContent side="top" className="bg-[#1C1C1E] text-white border-white/10 py-1.5 px-3 text-[12px] rounded-lg shadow-xl">
+                                                <TooltipContent side="top" className="bg-[#1C1C1E] text-white border-white/10 py-1.5 px-3 text-[12px] rounded-lg">
                                                     Dictate
                                                 </TooltipContent>
                                             </Tooltip>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <button className={`w-[32px] h-[32px] rounded-full flex items-center justify-center transition-all duration-300 ${isDark ? "text-blue-400 hover:bg-white/10" : "text-blue-600 hover:bg-black/5"}`}>
+                                                    <button className={`w-[32px] h-[32px] rounded-[8px] flex items-center justify-center transition-all duration-300 ${isDark ? "text-blue-400 hover:bg-white/10" : "text-blue-600 hover:bg-black/5"}`}>
                                                         <AudioLines size={18} strokeWidth={2} className="opacity-80" />
                                                     </button>
                                                 </TooltipTrigger>
-                                                <TooltipContent side="top" className="bg-[#1C1C1E] text-white border-white/10 py-1.5 px-3 text-[12px] rounded-lg shadow-xl">
+                                                <TooltipContent side="top" className="bg-[#1C1C1E] text-white border-white/10 py-1.5 px-3 text-[12px] rounded-lg">
                                                     Use Voice
                                                 </TooltipContent>
                                             </Tooltip>
@@ -2477,7 +2481,7 @@ export function CaseVisualizerView({
             </div>
 
             <Dialog open={isRestoring} onOpenChange={setIsRestoring}>
-                <DialogContent className={`${isDark ? 'bg-[#1C1C1E] border-white/10 text-white' : 'bg-white border-black/10 text-black'} rounded-2xl shadow-2xl max-w-[340px] p-6 !z-[1001]`}>
+                <DialogContent className={`${isDark ? 'bg-[#1C1C1E] border-white/10 text-white' : 'bg-white border-black/10 text-black'} rounded-[8px] max-w-[340px] p-6 !z-[1001]`}>
                     <DialogHeader className="gap-2">
                         <DialogTitle className="text-[18px] font-bold">Restaurar Modelo</DialogTitle>
                         <DialogDescription className={`text-[14px] leading-relaxed ${isDark ? 'text-white/60' : 'text-black/60'}`}>
@@ -2494,7 +2498,7 @@ export function CaseVisualizerView({
                         </Button>
                         <Button
                             onClick={(e) => { e.stopPropagation(); resetModel(); }}
-                            className="flex-1 bg-red-500 hover:bg-red-600 text-white border-none shadow-lg font-bold"
+                            className="flex-1 bg-red-500 hover:bg-red-600 text-white border-none font-bold"
                         >
                             Restaurar Todo
                         </Button>
@@ -2510,7 +2514,7 @@ export function CaseVisualizerView({
                             onMouseEnter={() => setIsHoveringUI(true)}
                             onMouseLeave={() => setIsHoveringUI(false)}
                         >
-                            <button className={`flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-md border shadow-lg text-[13px] font-medium transition-colors outline-none focus:outline-none h-[34px] ${isDark ? "bg-[#1f2128]/80 border-white/10 text-[#ededed] hover:bg-[#1f2128]" : "bg-white/80 border-black/5 text-[#11181c] hover:bg-white"}`}>
+                            <button className={`flex items-center gap-2 px-3 py-1.5 rounded-[8px] backdrop-blur-md border text-[13px] font-medium transition-colors outline-none focus:outline-none h-[34px] ${isDark ? "bg-[#1f2128]/80 border-white/10 text-[#ededed] hover:bg-[#1f2128]" : "bg-white/80 border-black/5 text-[#11181c] hover:bg-white"}`}>
                                 {zoomLevel}% <ChevronUp size={14} className="opacity-50" />
                             </button>
                         </div>
@@ -2518,20 +2522,20 @@ export function CaseVisualizerView({
                     <DropdownMenuContent
                         align="end"
                         sideOffset={8}
-                        className={`w-48 rounded-[12px] p-1 border shadow-xl ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}
+                        className={`w-48 rounded-[8px] p-1 border ${isDark ? "bg-[#1f2128] border-white/10 text-[#ededed]" : "bg-white border-black/5 text-[#11181c]"}`}
                         onMouseEnter={() => setIsHoveringUI(true)}
                         onMouseLeave={() => setIsHoveringUI(false)}
                     >
                         <div className="flex flex-col gap-1 py-1">
-                            <DropdownMenuItem onClick={() => setZoomLevel(prev => Math.min(500, prev + 25))} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
+                            <DropdownMenuItem onClick={() => setZoomLevel(prev => Math.min(500, prev + 25))} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
                                 <span>Zoom In</span>
                                 <span className="opacity-40 text-[11px]">⌘+</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setZoomLevel(prev => Math.max(10, prev - 25))} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
+                            <DropdownMenuItem onClick={() => setZoomLevel(prev => Math.max(10, prev - 25))} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
                                 <span>Zoom Out</span>
                                 <span className="opacity-40 text-[11px]">⌘-</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setZoomLevel(100)} className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
+                            <DropdownMenuItem onClick={() => setZoomLevel(100)} className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center">
                                 <span>Zoom to Fit</span>
                                 <span className="opacity-40 text-[11px]">⌘0</span>
                             </DropdownMenuItem>
@@ -2542,7 +2546,7 @@ export function CaseVisualizerView({
                                 <DropdownMenuItem
                                     key={v}
                                     onClick={() => setZoomLevel(v)}
-                                    className={`text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center ${zoomLevel === v ? 'text-blue-500 font-medium' : ''}`}
+                                    className={`text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10 flex justify-between items-center ${zoomLevel === v ? 'text-blue-500 font-medium' : ''}`}
                                 >
                                     {v}%
                                     {zoomLevel === v && <div className="w-1 h-1 rounded-full bg-blue-500" />}
@@ -2553,7 +2557,7 @@ export function CaseVisualizerView({
                         <div className="flex flex-col gap-1 py-1">
                             <DropdownMenuItem
                                 onClick={() => setShowGrid(!showGrid)}
-                                className="text-[13px] rounded-md px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"
+                                className="text-[13px] rounded-[8px] px-3 py-1.5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 focus:bg-black/5 dark:focus:bg-white/10"
                             >
                                 {showGrid ? 'Hide Grid' : 'Show Grid'}
                             </DropdownMenuItem>
@@ -2566,7 +2570,7 @@ export function CaseVisualizerView({
             {
                 contextMenu && (
                     <div
-                        className={`fixed z-[1000] min-w-[170px] rounded-xl p-1 shadow-2xl border ${isDark ? "bg-[#1C1C1E] border-white/10 text-[#EDEDED]" : "bg-white border-black/10 text-[#11181C]"}`}
+                        className={`fixed z-[1000] min-w-[170px] rounded-[8px] p-1 border ${isDark ? "bg-[#1C1C1E] border-white/10 text-[#EDEDED]" : "bg-white border-black/10 text-[#11181C]"}`}
                         style={{ left: contextMenu.x, top: contextMenu.y }}
                         onClick={(e) => e.stopPropagation()}
                         onMouseEnter={() => setIsHoveringUI(true)}

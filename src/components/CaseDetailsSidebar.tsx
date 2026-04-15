@@ -29,7 +29,7 @@ export function CaseDetailsSidebar({
         adding specific floating classes with an 8px inset.
       */}
             <SheetContent
-                className="fixed inset-y-2 right-2 z-50 w-full sm:max-w-md md:max-w-[500px] xl:max-w-[600px] flex flex-col gap-0 border border-ai-border shadow-2xl rounded-[8px] p-0 bg-white dark:bg-[#131416] text-[#393c40] dark:text-ai-text transition-transform duration-300 ease-in-out data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-right-full"
+                className="fixed inset-y-2 right-2 z-50 w-full sm:max-w-md md:max-w-[500px] xl:max-w-[600px] flex flex-col gap-0 border border-ai-border rounded-[8px] p-0 bg-white dark:bg-[#131416] text-[#393c40] dark:text-ai-text transition-transform duration-300 ease-in-out data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-right-full"
                 showCloseButton={false}
             >
                 {/* Header */}
@@ -252,7 +252,7 @@ export function CaseDetailsSidebar({
                 <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col gap-2 bg-gradient-to-t from-white via-white to-transparent dark:from-[#131416] dark:via-[#131416] dark:to-transparent pb-6 rounded-b-[8px] pointer-events-none">
                     <div className="pointer-events-auto flex flex-col gap-2 w-full pt-10">
                         <Button
-                            className="w-full bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] rounded-lg h-[44px] font-bold text-[14px] flex items-center justify-center gap-2 border-none shadow-sm transition-colors"
+                            className="w-full bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] rounded-lg h-[44px] font-bold text-[14px] flex items-center justify-center gap-2 border-none transition-colors"
                             onClick={onOpenVisualizer}
                         >
                             Open 3D Viewer <ExternalLink size={14} />

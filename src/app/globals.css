@@ -81,9 +81,9 @@
   --ai-text-inverted: #ffffff;
   /* Text on dark buttons */
 
-  --ai-accent: #0782f5;
+  --ai-accent: #1a73e8;
   /* Primary brand blue */
-  --ai-accent-hover: #066bca;
+  --ai-accent-hover: #155ebd;
   /* Darker blue hover */
 
   --ai-success: #1e8e3e;
@@ -130,8 +130,8 @@
   --ai-text-tertiary: #8e918f;
   --ai-text-inverted: #131314;
 
-  --ai-accent: #0782f5;
-  --ai-accent-hover: #5eb0fa;
+  --ai-accent: #a8c7fa;
+  --ai-accent-hover: #d3e3fd;
 
   --ai-success: #34a853;
 

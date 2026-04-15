@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -73,7 +73,9 @@ import {
   PanelLeft,
   Star,
   Search,
+  Clock,
   LayoutGrid,
+  List,
   RotateCcw,
   HelpCircle,
   ArrowLeft,
@@ -95,12 +97,18 @@ import {
   MapPin,
   Info,
   Truck,
-  CalendarPlus
+  User,
+  CalendarPlus,
+  Box,
+  Monitor,
+  ArrowUpDown,
+  Eye
 } from "lucide-react";
 
 import { CaseDetailsSidebar } from "@/components/CaseDetailsSidebar";
 import { CaseVisualizerView } from "@/components/CaseVisualizerView";
 import { SpecialtiesCarousel } from "@/components/SpecialtiesCarousel";
+import { Simple3DViewer } from "@/components/Simple3DViewer";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -123,6 +131,27 @@ type CaseItem = {
   estimatedDelivery: string;
   showEdit?: boolean;
   isLink?: boolean;
+  isPidi?: boolean;
+};
+
+type CommentItem = {
+  id: string;
+  user: string;
+  initials: string;
+  color: string;
+  text: string;
+  time: string;
+  type: 'general' | 'model';
+  position?: [number, number, number];
+  cameraState?: any;
+  replies: {
+    id: number;
+    user: string;
+    initials: string;
+    color: string;
+    text: string;
+    time: string;
+  }[];
 };
 
 // ---------------------------------------------------------------------------
@@ -136,14 +165,14 @@ const CASES_DATA: CaseItem[] = [
     subProyecto: 'JER AN1309531635', date: '13 DEC 2025', dateObj: new Date(2025, 11, 13),
     estimatedDelivery: '18 DEC 2025',
     avatars: [{ initials: 'AS', name: 'Ana Silva' }, { initials: 'CM', name: 'Claudio Martínez' }],
-    status: 'Blocked', subStatus: 'Incomplete documentation', statusColor: 'bg-red-500', showEdit: true,
+    status: 'Blocked', subStatus: 'Incomplete documentation', statusColor: 'bg-red-500', showEdit: true, isPidi: true,
   },
   {
     id: '2', clave: 'ID224594', subClave: 'Neurology', proyecto: 'Atypical meningioma',
     subProyecto: 'PTR AN1309531640', date: '12 DEC 2025', dateObj: new Date(2025, 11, 12),
     estimatedDelivery: '16 DEC 2025',
     avatars: [{ initials: 'AS', name: 'Ana Silva' }],
-    status: 'In progress', subStatus: 'Est. delivery 12/12/25', statusColor: 'bg-[#fbbc04]',
+    status: 'In progress', subStatus: 'Est. delivery 12/12/25', statusColor: 'bg-[#fbbc04]', isPidi: true,
   },
   {
     id: '3', clave: 'ID224580', subClave: 'Cardiology', proyecto: 'Valve revision',
@@ -157,7 +186,7 @@ const CASES_DATA: CaseItem[] = [
     subProyecto: 'ALV AN1309531641', date: '09 DEC 2025', dateObj: new Date(2025, 11, 9),
     estimatedDelivery: '14 DEC 2025',
     avatars: [{ initials: 'AL', name: 'Antonio López' }, { initials: 'CM', name: 'Claudio Martínez' }],
-    status: 'Pending', subStatus: 'Awaiting imaging', statusColor: 'bg-gray-300 dark:bg-[#e3e3e3] shadow-none dark:shadow-[0_0_4px_rgba(227,227,227,0.5)]',
+    status: 'Pending', subStatus: 'Awaiting imaging', statusColor: 'bg-gray-300 dark:bg-[#e3e3e3]',
   },
   {
     id: '5', clave: 'ID224585', subClave: 'Oncology', proyecto: 'Pancreatic lesion',
@@ -302,6 +331,11 @@ function Gatekeeper({ children }: { children: React.ReactNode }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const CORRECT_PASSWORD = "C3ll4.2025%";
 
@@ -326,20 +360,20 @@ function Gatekeeper({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (isLoading) return null;
+  if (isLoading || !mounted) return null;
 
   if (!isAuthorized) {
     return (
       <div className="fixed inset-0 z-[5000] flex items-center justify-center bg-[#0a0a0b] text-white font-sans overflow-hidden">
         {/* Animated Background Elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--ai-accent)]/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]" />
         
         <div className="relative w-full max-w-[400px] px-6 animate-in fade-in zoom-in-95 duration-700">
           <div className="flex flex-col items-center gap-8">
             {/* Logo Section */}
             <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-2xl shadow-blue-500/20">
+              <div className="w-16 h-16 rounded-[8px] bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                 <Sparkles className="text-white" size={32} />
               </div>
               <div className="flex flex-col items-center text-center">
@@ -353,7 +387,7 @@ function Gatekeeper({ children }: { children: React.ReactNode }) {
               <div className="relative group">
                 <div className={`absolute inset-0 bg-white/5 rounded-xl border transition-all duration-300 ${error ? 'border-red-500/50 bg-red-500/5' : 'border-white/10 group-focus-within:border-blue-500/50 group-focus-within:bg-white/10'}`} />
                 <div className="relative flex items-center h-14 px-4 gap-3">
-                  <Lock size={18} className={error ? 'text-red-400' : 'text-gray-500 group-focus-within:text-blue-400'} />
+                  <Lock size={18} className={error ? 'text-red-400' : 'text-gray-500 group-focus-within:text-[var(--ai-accent-hover)]'} />
                   <input
                     type="password"
                     value={password}
@@ -368,9 +402,8 @@ function Gatekeeper({ children }: { children: React.ReactNode }) {
                 </div>
               </div>
 
-              <Button 
-                type="submit"
-                className="h-14 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 group shadow-xl shadow-white/5"
+              <Button
+                className="h-14 rounded-[8px] bg-white text-black font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2 group border-none"
               >
                 Access Portal
                 <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
@@ -398,6 +431,9 @@ export default function CellaStudioDashboard() {
 }
 
 function CellaStudioDashboardContent() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const [leftNavOpen, setLeftNavOpen] = useState(true);
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
@@ -408,6 +444,41 @@ function CellaStudioDashboardContent() {
   const [isAgentTyping, setIsAgentTyping] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+
+  // SHARED COMMENTS STATE
+  const [comments, setComments] = useState<CommentItem[]>([
+    {
+      id: "1",
+      user: "Claudio Martínez",
+      initials: "CM",
+      color: "bg-purple-600",
+      text: "He revisado la segmentación del tumor y parece que falta incluir una pequeña porción del margen distal. ¿Podéis revisarlo?",
+      time: "2h ago",
+      type: 'general',
+      replies: [
+        {
+          id: 2,
+          user: "Laura Ruiz (Cella Specialist)",
+          initials: "LR",
+          color: "bg-[var(--ai-accent)]",
+          text: "Entendido, Claudio. Lo revisamos ahora mismo con el equipo de radiología.",
+          time: "1h ago"
+        }
+      ]
+    },
+    {
+      id: "3",
+      user: "Pedro García",
+      initials: "PG",
+      color: "bg-teal-600",
+      text: "Check the clearance around the superior mesenteric artery on this specific view.",
+      time: "45m ago",
+      type: 'model',
+      position: [2.5, 1.2, -0.5],
+      replies: []
+    }
+  ]);
 
   // TOUR STATE
   const [isTourOpen, setIsTourOpen] = useState(false);
@@ -446,6 +517,28 @@ function CellaStudioDashboardContent() {
       position: 'left'
     }
   ];
+
+  const handleAddComment = (text: string) => {
+    const newComment: CommentItem = {
+      id: Date.now().toString(),
+      user: "Claudio Martínez",
+      initials: "CM",
+      color: "bg-purple-600",
+      text,
+      time: "Just now",
+      type: 'general',
+      replies: []
+    };
+    setComments(prev => [newComment, ...prev]);
+  };
+
+  const handleViewComment3D = (comment: CommentItem) => {
+    if (comment.type === 'model') {
+      setCurrentView('visualizer');
+      setIsCommentsSidebarOpen(false);
+      // Logic to focus camera would happen in CaseVisualizerView via props
+    }
+  };
 
   const handleNextTour = () => {
     if (currentTourStep < TOUR_STEPS.length - 1) {
@@ -517,7 +610,8 @@ function CellaStudioDashboardContent() {
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(true);
   const [projectNames, setProjectNames] = useState<Record<string, string>>({
     "Team project": "Team project",
-    "Guest Project": "Guest Project"
+    "Guest Project": "Guest Project",
+    "PIDI Projects": "PIDI Projects"
   });
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(2025, 10, 1),
@@ -544,16 +638,19 @@ function CellaStudioDashboardContent() {
   const [billingSearch, setBillingSearch] = useState("");
   const [billingFilter, setBillingFilter] = useState("All");
   const [billingSort, setBillingSort] = useState("Newest");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCommentsSidebarOpen, setIsCommentsSidebarOpen] = useState(false);
 
   const handleViewModel = (caseData: any) => {
     setSelectedCase(caseData);
     setCurrentView('visualizer');
   };
   const [inviteEmail, setInviteEmail] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
   const [inviteSearch, setInviteSearch] = useState("");
   const [collaborators, setCollaborators] = useState<{ initials: string; name: string; email: string; role: string; color: string }[]>([
     { initials: 'CM', name: 'Claudio Martínez', email: 'claudio@hospital.es', role: 'Owner', color: 'bg-purple-600' },
-    { initials: 'LR', name: 'Laura Ruiz', email: 'laura@hospital.es', role: 'Editor', color: 'bg-blue-600' },
+    { initials: 'LR', name: 'Laura Ruiz', email: 'laura@hospital.es', role: 'Editor', color: 'bg-[var(--ai-accent)]' },
     { initials: 'PG', name: 'Pedro García', email: 'pedro@hospital.es', role: 'Viewer', color: 'bg-teal-600' },
   ]);
 
@@ -569,6 +666,8 @@ function CellaStudioDashboardContent() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDark]);
+
+  if (!mounted) return null;
 
   return (
     <div className="flex h-screen w-full bg-ai-base text-ai-text font-sans overflow-hidden transition-colors duration-300">
@@ -592,7 +691,7 @@ function CellaStudioDashboardContent() {
       {/* MAIN APP CONTENT (Island when Chat is Open) */}
 
       {/* MAIN APP CONTENT (Island when Chat is Open) */}
-      <div className={`flex transition-all duration-300 flex-1 overflow-hidden ${chatSidebarOpen ? "bg-white dark:bg-[#0f1112] my-3 ml-3 rounded-[16px] border border-solid border-ai-border" : "h-full bg-transparent"}`}>
+      <div className={`flex transition-all duration-300 flex-1 overflow-hidden ${chatSidebarOpen ? "bg-white dark:bg-[#0f1112] my-3 ml-3 rounded-[8px] border border-solid border-ai-border" : "h-full bg-transparent"}`}>
 
         {/* If Visualizer, take full space */}
         {currentView === 'visualizer' ? (
@@ -604,6 +703,8 @@ function CellaStudioDashboardContent() {
             pointerMode={pointerMode}
             setPointerMode={setPointerMode}
             onInviteClick={handleInviteClick}
+            comments={comments}
+            setComments={setComments}
           />
         ) : (
           <>
@@ -614,7 +715,7 @@ function CellaStudioDashboardContent() {
                 <div className="flex items-center gap-2 h-[56px] px-4 mt-2 shrink-0">
                   <button
                     onClick={() => setCurrentView('home')}
-                    className="flex items-center justify-center w-7 h-7 rounded-[6px] hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer shrink-0"
+                    className="flex items-center justify-center w-7 h-7 rounded-[8px] hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer shrink-0"
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -637,7 +738,7 @@ function CellaStudioDashboardContent() {
                     <button
                       key={section}
                       onClick={() => setDocsSection(section)}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[7px] text-left transition-colors cursor-pointer ${docsSection === section
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-[8px] text-left transition-colors cursor-pointer ${docsSection === section
                         ? 'bg-ai-hover-1 text-ai-text'
                         : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'
                         }`}
@@ -697,8 +798,9 @@ function CellaStudioDashboardContent() {
                   />
                   {leftNavOpen && isProjectsExpanded && (
                     <div className="flex flex-col gap-[2px] ml-[21px] pl-3 py-1 border-l border-ai-border my-1 relative animate-in slide-in-from-top-2 fade-in duration-200">
-                      <Button variant="ghost" onClick={() => { setActiveProject('Team project'); setCurrentView('project_detail'); }} className={`h-[30px] w-full flex items-center justify-start rounded-[8px] px-3 font-medium text-[13px] relative group transition-colors cursor-pointer ${activeProject === 'Team project' && currentView === 'project_detail' ? 'text-[#0782f5] bg-[#0782f5]/10 dark:bg-[#0782f5]/15 hover:bg-[#0782f5]/20' : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'}`}>{projectNames['Team project']}</Button>
-                      <Button variant="ghost" onClick={() => { setActiveProject('Guest Project'); setCurrentView('project_detail'); }} className={`h-[30px] w-full flex items-center justify-start rounded-[8px] px-3 font-medium text-[13px] relative group transition-colors cursor-pointer ${activeProject === 'Guest Project' && currentView === 'project_detail' ? 'text-[#0782f5] bg-[#0782f5]/10 dark:bg-[#0782f5]/15 hover:bg-[#0782f5]/20' : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'}`}>{projectNames['Guest Project']}</Button>
+                      <Button variant="ghost" onClick={() => { setActiveProject('Team project'); setCurrentView('project_detail'); }} className={`h-[30px] w-full flex items-center justify-start rounded-[8px] px-3 font-medium text-[13px] relative group transition-colors cursor-pointer ${activeProject === 'Team project' && currentView === 'project_detail' ? 'text-[var(--ai-accent)] bg-[var(--ai-accent)]/10 dark:bg-[var(--ai-accent)]/15 hover:bg-[var(--ai-accent)]/20' : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'}`}>{projectNames['Team project']}</Button>
+                      <Button variant="ghost" onClick={() => { setActiveProject('Guest Project'); setCurrentView('project_detail'); }} className={`h-[30px] w-full flex items-center justify-start rounded-[8px] px-3 font-medium text-[13px] relative group transition-colors cursor-pointer ${activeProject === 'Guest Project' && currentView === 'project_detail' ? 'text-[var(--ai-accent)] bg-[var(--ai-accent)]/10 dark:bg-[var(--ai-accent)]/15 hover:bg-[var(--ai-accent)]/20' : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'}`}>{projectNames['Guest Project']}</Button>
+                      <Button variant="ghost" onClick={() => { setActiveProject('PIDI Projects'); setCurrentView('project_detail'); }} className={`h-[30px] w-full flex items-center justify-start rounded-[8px] px-3 font-medium text-[13px] relative group transition-colors cursor-pointer ${activeProject === 'PIDI Projects' && currentView === 'project_detail' ? 'text-[var(--ai-accent)] bg-[var(--ai-accent)]/10 dark:bg-[var(--ai-accent)]/15 hover:bg-[var(--ai-accent)]/20' : 'text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1'}`}>{projectNames['PIDI Projects']}</Button>
                     </div>
                   )}
                 </div>
@@ -721,21 +823,21 @@ function CellaStudioDashboardContent() {
                         <NavItem icon={<HelpCircle size={18} />} label="Feedback" expanded={leftNavOpen} />
                       </div>
                     </PopoverTrigger>
-                    <PopoverContent side="right" align="end" sideOffset={16} className="w-[400px] p-4 rounded-[16px] shadow-lg border-ai-border bg-white dark:bg-[#131314]">
+                    <PopoverContent side="right" align="end" sideOffset={16} className="w-[400px] p-4 rounded-[8px] border-ai-border bg-white dark:bg-[#131314]">
                       <div className="flex flex-col gap-4 w-full">
                         <div className="flex flex-col gap-3 w-full">
                           <p className="font-semibold text-ai-text text-[15px]">Your feedback is important to us</p>
-                          <div className="bg-ai-base border border-ai-border flex items-start h-[100px] p-3 rounded-[8px] w-full focus-within:ring-1 focus-within:ring-[#0782f5] transition-shadow">
+                          <div className="bg-ai-base border border-ai-border flex items-start h-[100px] p-3 rounded-[8px] w-full focus-within:ring-1 focus-within:ring-[var(--ai-accent)] transition-shadow">
                             <textarea className="bg-transparent border-none outline-none resize-none flex-1 text-[13px] text-ai-text placeholder:text-ai-text-tertiary w-full h-full" placeholder="Write your feedback and opinions here..." />
                           </div>
                         </div>
                         <div className="flex justify-end w-full">
-                          <Button className="bg-[#0782f5] hover:bg-[#0782f5]/90 text-white px-4 py-2 rounded-[8px] flex items-center gap-2 h-auto text-[14px]">Send <ArrowRight size={16} /></Button>
+                          <Button className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/90 text-white px-4 py-2 rounded-[8px] flex items-center gap-2 h-auto text-[14px]">Send <ArrowRight size={16} /></Button>
                         </div>
                       </div>
                     </PopoverContent>
                   </Popover>
-                  <NavItem icon={<Settings size={18} />} label="Settings" expanded={leftNavOpen} active={currentView === 'settings'} onClick={() => setCurrentView('settings')} />
+                  <NavItem icon={<Settings size={18} />} label="Settings" expanded={leftNavOpen} active={false} onClick={() => setIsSettingsOpen(true)} />
                   <div className={`flex items-center gap-3 px-3 py-2 mt-2 rounded-lg cursor-pointer hover:bg-ai-hover-1 transition-colors ${!leftNavOpen ? 'justify-center px-0' : ''}`}>
                     <Avatar className="w-[24px] h-[24px] rounded-full border border-ai-border bg-ai-surface">
                       <AvatarFallback className="bg-transparent text-ai-text text-[10px]">A</AvatarFallback>
@@ -767,44 +869,33 @@ function CellaStudioDashboardContent() {
                       id="tour-support-chat"
                       variant="outline"
                       onClick={() => setChatSidebarOpen(!chatSidebarOpen)}
-                      className={`h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-full px-4 gap-2 flex items-center shadow-none cursor-pointer transition-colors ${chatSidebarOpen ? "bg-ai-hover-1 border-ai-border-strong" : ""}`}
+                      className={`h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[8px] px-4 gap-2 flex items-center shadow-none cursor-pointer transition-colors ${chatSidebarOpen ? "bg-ai-hover-1 border-ai-border-strong" : ""}`}
                     >
-                      <Avatar className="w-[20px] h-[20px] border border-ai-border">
-                        <AvatarFallback className="text-[9px] font-bold bg-blue-500 text-white">CS</AvatarFallback>
-                      </Avatar>
                       <span className="font-medium text-[14px]">Talk to Cella</span>
                     </Button>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Button className="h-[36px] bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] border-none shadow-none rounded-full px-4 text-[13px] font-medium flex items-center gap-2 cursor-pointer transition-colors">
+                    <Button className="h-[36px] bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] border-none shadow-none rounded-[8px] px-4 text-[13px] font-medium flex items-center gap-2 cursor-pointer transition-colors">
                       <Plus size={16} />
                       Create new case
                     </Button>
 
                     {/* Notifications */}
                     <div className="flex items-center mt-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-[36px] w-[36px] rounded-full text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text flex shrink-0 justify-center items-center border border-transparent mr-1"
-                        onClick={() => { setIsTourOpen(true); setCurrentTourStep(0); }}
-                        title="Start Tour"
-                      >
-                        <HelpCircle size={20} />
-                      </Button>
                       
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-[36px] w-[36px] rounded-full text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text flex shrink-0 justify-center items-center border border-transparent relative">
+                          <Button variant="ghost" size="icon" className="h-[36px] w-[36px] rounded-[8px] text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text flex shrink-0 justify-center items-center border border-transparent relative">
                             <Bell size={20} strokeWidth={2} />
                             <div className="absolute top-[8px] right-[8px] w-2 h-2 rounded-full bg-red-500 border-2 border-ai-surface"></div>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[320px] bg-white dark:bg-ai-surface border-ai-border rounded-xl p-2 shadow-2xl space-y-1">
+                        <DropdownMenuContent align="end" className="w-[320px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-2 space-y-1">
                           <div className="px-2 py-2 mb-1 border-b border-ai-border flex items-center justify-between">
                             <span className="font-semibold text-[14px] text-ai-text">Notifications</span>
-                            <span className="text-[12px] text-[#0782f5] cursor-pointer hover:underline">Mark all as read</span>
+                            <span className="text-[12px] text-[var(--ai-accent)] cursor-pointer hover:underline">Mark all as read</span>
                           </div>
 
                           <DropdownMenuItem className="focus:bg-transparent rounded-lg p-2.5 flex flex-col items-start gap-1 cursor-pointer">
@@ -827,13 +918,12 @@ function CellaStudioDashboardContent() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-
-                    <div className="w-px h-5 bg-ai-border mx-1" />
+                     
 
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-[36px] w-[36px] rounded-full text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text flex shrink-0 justify-center items-center border border-transparent"
+                      className="h-[36px] w-[36px] rounded-[8px] text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text flex shrink-0 justify-center items-center border border-transparent"
                       onClick={() => setIsDark(!isDark)}
                     >
                       {isDark ? <Sun size={18} /> : <Moon size={18} />}
@@ -868,7 +958,7 @@ function CellaStudioDashboardContent() {
                           <div className="p-1">
                             <div className="flex items-center justify-between p-4 rounded-[12px] hover:bg-white/50 dark:hover:bg-white/5 transition-colors group cursor-pointer">
                               <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#450a0a]/20 border border-[#ef4444]/10 flex items-center justify-center text-[#ef4444] shadow-sm">
+                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#450a0a]/20 border border-[#ef4444]/10 flex items-center justify-center text-[#ef4444]">
                                   <XCircle size={20} />
                                 </div>
                                 <div className="flex flex-col">
@@ -883,7 +973,7 @@ function CellaStudioDashboardContent() {
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-[12px] hover:bg-white/50 dark:hover:bg-white/5 transition-colors group cursor-pointer">
                               <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#450a0a]/20 border border-[#ef4444]/10 flex items-center justify-center text-[#ef4444] shadow-sm">
+                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#450a0a]/20 border border-[#ef4444]/10 flex items-center justify-center text-[#ef4444]">
                                   <RotateCcw size={20} />
                                 </div>
                                 <div className="flex flex-col">
@@ -904,13 +994,13 @@ function CellaStudioDashboardContent() {
                             <h2 className="text-[20px] font-medium text-ai-text shrink-0">
                               Recent Cases
                             </h2>
-                            <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('cases')}>View all</span>
+                            <span className="text-[13px] text-[var(--ai-accent)] hover:text-[var(--ai-accent-hover)] cursor-pointer transition-colors" onClick={() => setCurrentView('cases')}>View all</span>
                           </div>
 
-                          <div id="tour-recent-cases" className="border border-ai-border rounded-[8px] bg-white dark:bg-transparent overflow-hidden w-full">
+                          <div id="tour-recent-cases" className="border border-ai-border rounded-[8px] overflow-hidden w-full">
                             <Table className="w-full text-[13px] table-fixed">
-                              <TableHeader className="bg-transparent">
-                                <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px]">
+                              <TableHeader>
+                                <TableRow className="border-b border-ai-border h-[40px] bg-ai-surface hover:bg-ai-surface cursor-default">
                                   <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
                                   <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
                                   <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
@@ -931,6 +1021,7 @@ function CellaStudioDashboardContent() {
                                       onViewModel={handleViewModel}
                                       onViewDetails={setSelectedCase}
                                       onDelete={() => setCases(prev => prev.filter(x => x.id !== c.id))}
+                                      onCommentsClick={() => setIsCommentsSidebarOpen(true)}
                                     />
                                   ))}
                               </TableBody>
@@ -942,12 +1033,12 @@ function CellaStudioDashboardContent() {
                       {/* Lado derecho 33% */}
                       <div className="lg:col-span-1 flex flex-col gap-10">
                         <div className="flex flex-col">
-                          <div className="border border-ai-border dark:border-white/10 bg-white dark:bg-[#131416] shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-none rounded-[8px] p-6 flex flex-row items-start gap-6 text-left relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
+                          <div className="border border-ai-border dark:border-white/10 bg-white dark:bg-[#131416] rounded-[8px] p-6 flex flex-row items-start gap-6 text-left relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
                             {/* Background decoration */}
                             <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-900/10" />
                             
                             <div className="relative shrink-0">
-                               <Avatar className="w-[96px] h-[96px] max-[1680px]:w-[72px] max-[1680px]:h-[72px] border-4 border-white dark:border-[#131416] shadow-xl group-hover:scale-105 transition-transform duration-300 z-10">
+                               <Avatar className="w-[96px] h-[96px] max-[1680px]:w-[72px] max-[1680px]:h-[72px] border-4 border-white dark:border-[#131416] group-hover:scale-105 transition-transform duration-300 z-10">
                                  <AvatarImage src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop" />
                                  <AvatarFallback className="bg-blue-100 text-blue-700 font-bold text-[32px] max-[1680px]:text-[24px]">LG</AvatarFallback>
                                </Avatar>
@@ -957,13 +1048,13 @@ function CellaStudioDashboardContent() {
                             <div className="flex flex-col gap-3 min-w-0 relative z-10 flex-1">
                               <div className="flex flex-col gap-0.5">
                                 <span className="text-ai-text font-bold text-[20px] max-[1680px]:text-[16px] leading-tight">Laura Gómez</span>
-                                <span className="text-[#1a73e8] dark:text-blue-400 font-semibold text-[13px] uppercase tracking-wider max-[1680px]:lowercase max-[1680px]:tracking-normal max-[1680px]:font-medium">CellaMS Sales Rep</span>
+                                <span className="text-[#1a73e8] dark:text-[var(--ai-accent-hover)] font-semibold text-[13px] uppercase tracking-wider max-[1680px]:lowercase max-[1680px]:tracking-normal max-[1680px]:font-medium">CellaMS Sales Rep</span>
                               </div>
 
                               <div className="flex flex-col gap-2 w-full text-ai-text-secondary text-[13px]">
                                  <div 
                                     onClick={() => setIsContactSidebarOpen(true)}
-                                    className="flex items-center gap-2 hover:text-blue-600 transition-colors cursor-pointer group/item"
+                                    className="flex items-center gap-2 hover:text-[var(--ai-accent)] transition-colors cursor-pointer group/item"
                                   >
                                     <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center border border-ai-border/50 group-hover/item:bg-blue-50 transition-colors">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -986,23 +1077,23 @@ function CellaStudioDashboardContent() {
                         <div className="flex flex-col">
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="text-[20px] font-medium text-ai-text">Recent Products</h3>
-                            <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('discover')}>View all</span>
+                            <span className="text-[13px] text-[var(--ai-accent)] hover:text-[var(--ai-accent-hover)] cursor-pointer transition-colors" onClick={() => setCurrentView('discover')}>View all</span>
                           </div>
                           <div className="grid grid-cols-2 max-[1680px]:grid-cols-1 gap-3">
-                            <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] shadow-sm rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[#0782f5] transition-colors">
-                              <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[#0782f5] transition-colors shrink-0">C</div>
+                            <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[var(--ai-accent)] transition-colors">
+                              <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[var(--ai-accent)] transition-colors shrink-0">C</div>
                               <div className="flex flex-col min-w-0">
-                                <span className="text-[14px] font-semibold text-ai-text leading-tight group-hover:text-blue-600 transition-colors truncate">Ischemic colitis</span>
+                                <span className="text-[14px] font-semibold text-ai-text leading-tight group-hover:text-[var(--ai-accent)] transition-colors truncate">Ischemic colitis</span>
                                 <span className="text-[11px] font-medium text-ai-text-tertiary">Colorectal</span>
-                                <span className="text-[#0782f5] dark:text-blue-400 text-[11px] font-bold mt-1">Request now →</span>
+                                <span className="text-[var(--ai-accent)] dark:text-[var(--ai-accent-hover)] text-[11px] font-bold mt-1">Request now →</span>
                               </div>
                             </div>
-                            <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] shadow-sm rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[#0782f5] transition-colors">
-                              <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[#0782f5] transition-colors shrink-0">G</div>
+                            <div className="border border-ai-border dark:border-white/10 bg-transparent dark:bg-[#131416] rounded-[8px] p-4 flex flex-row items-center gap-4 cursor-pointer group hover:border-[var(--ai-accent)] transition-colors">
+                              <div className="w-10 h-10 rounded-full bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center text-ai-text font-bold text-[15px] border border-ai-border group-hover:border-[var(--ai-accent)] transition-colors shrink-0">G</div>
                               <div className="flex flex-col min-w-0">
-                                <span className="text-[14px] font-semibold text-ai-text leading-tight group-hover:text-blue-600 transition-colors truncate">Desmoplastic tumor</span>
+                                <span className="text-[14px] font-semibold text-ai-text leading-tight group-hover:text-[var(--ai-accent)] transition-colors truncate">Desmoplastic tumor</span>
                                 <span className="text-[11px] font-medium text-ai-text-tertiary">General Surgery</span>
-                                <span className="text-[#0782f5] dark:text-blue-400 text-[11px] font-bold mt-1">Request now →</span>
+                                <span className="text-[var(--ai-accent)] dark:text-[var(--ai-accent-hover)] text-[11px] font-bold mt-1">Request now →</span>
                               </div>
                             </div>
                           </div>
@@ -1012,25 +1103,25 @@ function CellaStudioDashboardContent() {
                         <div className="flex flex-col">
                           <div className="flex items-center justify-between mb-5">
                             <h3 className="text-[20px] font-medium text-ai-text">What's New</h3>
-                            <span className="text-[13px] text-blue-500 hover:text-blue-400 cursor-pointer transition-colors" onClick={() => setCurrentView('blog')}>View all</span>
+                            <span className="text-[13px] text-[var(--ai-accent)] hover:text-[var(--ai-accent-hover)] cursor-pointer transition-colors" onClick={() => setCurrentView('blog')}>View all</span>
                           </div>
-                          <div className="flex flex-col gap-2 border border-ai-border rounded-[8px] bg-white dark:bg-transparent p-6 shadow-sm">
+                          <div className="flex flex-col gap-2 border border-ai-border rounded-[8px] bg-white dark:bg-transparent p-6">
                             {ARTICLES_DATA.map((article, idx) => (
                               <div 
                                 key={article.id}
                                 onClick={() => { setSelectedArticle(article); setCurrentView('article'); }}
-                                className="bg-transparent py-2 flex items-start gap-4 rounded-xl cursor-pointer transition-colors duration-200 group border border-transparent"
+                                className="bg-transparent py-2 flex items-start gap-4 rounded-[8px] cursor-pointer transition-colors duration-200 group border border-transparent"
                               >
-                                <div className="bg-white dark:bg-[#131416] border border-ai-border p-2 rounded-lg shrink-0 mt-0.5 shadow-sm">
+                                <div className="bg-white dark:bg-[#131416] border border-ai-border p-2 rounded-lg shrink-0 mt-0.5">
                                   {idx === 0 ? <ImageIcon size={18} className="text-ai-text-secondary" /> : 
                                    idx === 1 ? <Sparkles size={18} className="text-ai-text-secondary" /> : 
                                    <Settings size={18} className="text-ai-text-secondary" />}
                                 </div>
                                 <div className="flex flex-col gap-1 min-w-0 flex-1">
-                                  <span className="text-ai-text font-semibold text-[15px] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{article.title}</span>
+                                  <span className="text-ai-text font-semibold text-[15px] group-hover:text-[var(--ai-accent)] dark:group-hover:text-[var(--ai-accent-hover)] transition-colors">{article.title}</span>
                                   <span className="text-ai-text-tertiary text-[12px] leading-relaxed line-clamp-2">{article.id === 'cella-2-0' ? 'Advanced clinical visual intelligence with sub-second anatomical segmentation.' : article.id === 'auto-segmentation' ? 'Map vascular structures automatically with 99% accuracy.' : 'Export directly to standard medical imaging formats natively.'}</span>
                                   <div className="mt-1">
-                                    <span className="text-[#0782f5] dark:text-blue-400 text-[12px] font-bold">Read more →</span>
+                                    <span className="text-[var(--ai-accent)] dark:text-[var(--ai-accent-hover)] text-[12px] font-bold">Read more →</span>
                                   </div>
                                 </div>
                               </div>
@@ -1071,6 +1162,7 @@ function CellaStudioDashboardContent() {
                     cases={cases}
                     onProjectClick={(projectKey) => { setActiveProject(projectKey); setCurrentView('project_detail'); }}
                     onTitleChange={(key, newTitle) => setProjectNames(prev => ({ ...prev, [key]: newTitle }))}
+                    onShareClick={() => setIsInviteOpen(true)}
                   />
                 )}
 
@@ -1081,16 +1173,17 @@ function CellaStudioDashboardContent() {
                     onCaseSelect={setSelectedCase}
                     onTitleChange={(newTitle) => setProjectNames(prev => ({ ...prev, [activeProject]: newTitle }))}
                     onViewModel={handleViewModel}
+                    onCommentsClick={() => setIsCommentsSidebarOpen(true)}
                     onBack={() => setCurrentView('projects')}
                   />
                 )}
 
                 {currentView === 'cases' && (
-                  <CasesView onCaseSelect={setSelectedCase} onViewModel={handleViewModel} cases={cases} setCases={setCases} />
+                  <CasesView onCaseSelect={setSelectedCase} onViewModel={handleViewModel} cases={cases} setCases={setCases} onCommentsClick={() => setIsCommentsSidebarOpen(true)} />
                 )}
 
                 {currentView === 'discover' && (
-                  <DiscoverView />
+                  <DiscoverView onViewModel={handleViewModel} />
                 )}
 
                 {currentView === 'docs' && (
@@ -1105,9 +1198,6 @@ function CellaStudioDashboardContent() {
                   />
                 )}
 
-                {currentView === 'settings' && (
-                  <SettingsView onBack={() => setCurrentView('home')} />
-                )}
 
               </div>
             </div>
@@ -1137,12 +1227,12 @@ function CellaStudioDashboardContent() {
                 </div>
               </div>
               <div className="flex items-center gap-1 text-ai-text-tertiary">
-                <button className="p-2 hover:bg-ai-hover-1 hover:text-ai-text rounded-full transition-colors cursor-pointer" title="Refresh">
+                <button className="p-2 hover:bg-ai-hover-1 hover:text-ai-text rounded-[8px] transition-colors cursor-pointer" title="Refresh">
                   <RotateCcw size={16} />
                 </button>
                 <button 
                   onClick={() => setChatSidebarOpen(false)}
-                  className="p-2 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors cursor-pointer group"
+                  className="p-2 hover:bg-red-50 hover:text-red-500 rounded-[8px] transition-colors cursor-pointer group"
                 >
                   <X size={18} className="group-hover:scale-110 transition-transform" />
                 </button>
@@ -1158,7 +1248,7 @@ function CellaStudioDashboardContent() {
                       <span className="text-[10px] font-bold text-white">CS</span>
                     </div>
                   )}
-                  <div className={`p-3 rounded-[16px] max-w-[85%] ${msg.role === 'user'
+                  <div className={`p-3 rounded-[8px] max-w-[85%] ${msg.role === 'user'
                     ? 'bg-[#1a73e8] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] rounded-tr-[4px]'
                     : 'bg-ai-surface border border-ai-border text-ai-text rounded-tl-[4px]'
                     }`}>
@@ -1172,7 +1262,7 @@ function CellaStudioDashboardContent() {
                   <div className="w-[28px] h-[28px] rounded-full bg-blue-500 shrink-0 border border-ai-border flex items-center justify-center mt-0.5">
                     <span className="text-[10px] font-bold text-white">CS</span>
                   </div>
-                  <div className="p-4 rounded-[16px] rounded-tl-[4px] bg-ai-surface border border-ai-border w-[60px] flex items-center justify-center gap-1.5 h-[40px]">
+                  <div className="p-4 rounded-[8px] rounded-tl-[4px] bg-ai-surface border border-ai-border w-[60px] flex items-center justify-center gap-1.5 h-[40px]">
                     <div className="w-1.5 h-1.5 rounded-full bg-ai-text-tertiary animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-1.5 h-1.5 rounded-full bg-ai-text-tertiary animate-bounce" style={{ animationDelay: '150ms' }}></div>
                     <div className="w-1.5 h-1.5 rounded-full bg-ai-text-tertiary animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -1183,7 +1273,7 @@ function CellaStudioDashboardContent() {
 
             {/* Chat Input Field */}
             <div className="p-4 shrink-0 w-full">
-              <div className="relative w-full rounded-[16px] bg-ai-hover-1 border border-ai-border p-3 flex flex-col min-h-[120px] focus-within:border-ai-border-strong transition-colors">
+              <div className="relative w-full rounded-[8px] bg-ai-hover-1 border border-ai-border p-3 flex flex-col min-h-[120px] focus-within:border-ai-border-strong transition-colors">
                 <textarea
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
@@ -1194,7 +1284,7 @@ function CellaStudioDashboardContent() {
                 <div className="flex justify-end mt-2">
                   <div
                     onClick={handleSendMessage}
-                    className="w-[32px] h-[32px] rounded-full bg-black dark:bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                    className="w-[32px] h-[32px] rounded-[8px] bg-black dark:bg-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
                   >
                     <div className="flex items-center justify-center gap-[2px]">
                       <div className="w-[2px] h-[8px] bg-white dark:bg-black rounded-full animate-pulse object-center" style={{ animationDelay: '0ms' }}></div>
@@ -1232,12 +1322,41 @@ function CellaStudioDashboardContent() {
         onOpenChange={setIsContactSidebarOpen}
       />
 
-      {/* Invite Collaborator Modal (Dashboard Level) */}
+      <SettingsModal
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+      />
+
+      <CommentsSidebar
+        open={isCommentsSidebarOpen}
+        onOpenChange={setIsCommentsSidebarOpen}
+        comments={comments}
+        onAddComment={handleAddComment}
+        onViewIn3D={handleViewComment3D}
+      />
+
+      {/* Unified Share Modal (Dashboard Level - used for Projects) */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-xl overflow-hidden gap-0">
-          <div className="p-5 pb-4 border-b border-ai-border flex items-center justify-between">
-            <DialogTitle className="text-[16px] font-medium font-sans">Invite collaborator</DialogTitle>
+        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-xl overflow-hidden gap-0 [&>button]:top-[23px]">
+          {/* Header */}
+          <div className="px-5 h-[64px] border-b border-ai-border flex items-center justify-between pr-12">
+            <DialogTitle className="text-[16px] font-medium font-sans">Share</DialogTitle>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setLinkCopied(true);
+                setTimeout(() => setLinkCopied(false), 2000);
+              }}
+              className={`flex items-center gap-1.5 text-[12px] font-medium px-2 py-1.5 rounded-[8px] transition-all ${linkCopied
+                ? 'text-green-500 bg-green-500/5'
+                : 'text-ai-text-secondary hover:text-ai-accent'
+                }`}
+            >
+              <Link size={14} className={linkCopied ? 'text-green-500' : 'text-ai-text-tertiary'} />
+              <span>{linkCopied ? 'Copied!' : 'Copy link'}</span>
+            </button>
           </div>
+
           <div className="p-5 flex flex-col gap-4">
             <div className="flex gap-2">
               <div className="flex-1 flex items-center h-[40px] rounded-[8px] border border-ai-border bg-ai-base px-3 gap-2 focus-within:ring-1 focus-within:ring-ai-text-secondary/40 transition-shadow">
@@ -1252,11 +1371,12 @@ function CellaStudioDashboardContent() {
               <Button
                 disabled={!inviteEmail.includes('@')}
                 onClick={() => setInviteEmail('')}
-                className="h-[40px] px-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-[8px] text-[13px] font-medium shrink-0"
+                className="h-[40px] px-5 bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] disabled:opacity-40 text-white rounded-[8px] text-[13px] font-medium shrink-0"
               >
                 Invite
               </Button>
             </div>
+
             <div className="flex items-center justify-between px-3 py-2 rounded-[8px] border border-ai-border bg-ai-base cursor-pointer hover:bg-ai-hover-1 transition-colors">
               <div className="flex items-center gap-2">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-ai-text-secondary shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
@@ -1264,6 +1384,7 @@ function CellaStudioDashboardContent() {
               </div>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-ai-text-secondary shrink-0"><polyline points="6 9 12 15 18 9" /></svg>
             </div>
+
             <div className="flex flex-col gap-2">
               <p className="text-[12px] text-ai-text-tertiary uppercase tracking-wide font-medium">Current collaborators</p>
               <div className="flex items-center h-[36px] rounded-[8px] border border-ai-border bg-ai-base px-3 gap-2">
@@ -1276,6 +1397,7 @@ function CellaStudioDashboardContent() {
                   className="bg-transparent border-none outline-none text-[13px] text-ai-text w-full placeholder:text-ai-text-tertiary"
                 />
               </div>
+
               <div className="flex flex-col">
                 {collaborators
                   .filter(c => !inviteSearch || c.name.toLowerCase().includes(inviteSearch.toLowerCase()) || c.email.toLowerCase().includes(inviteSearch.toLowerCase()))
@@ -1289,30 +1411,26 @@ function CellaStudioDashboardContent() {
                         <span className="text-[11px] text-ai-text-tertiary truncate">{collab.email}</span>
                       </div>
                       {collab.role === 'Owner' ? (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0 bg-purple-500/10 text-purple-400">Owner</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-[8px] font-medium shrink-0 bg-purple-500/10 text-purple-400">Owner</span>
                       ) : (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className={`flex items-center gap-1 text-[12px] font-medium px-2 py-0.5 rounded-full shrink-0 transition-colors hover:opacity-80 ${collab.role === 'Editor' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'}`}>
+                            <button className={`flex items-center gap-1 text-[12px] font-medium px-2 py-0.5 rounded-[8px] shrink-0 transition-colors hover:opacity-80 ${collab.role === 'Editor' ? 'bg-blue-500/10 text-[var(--ai-accent-hover)]' : 'bg-gray-500/10 text-gray-400'
+                              }`}>
                               {collab.role}
                               <ChevronDown size={10} />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-[160px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px] p-1">
-                            <DropdownMenuItem onClick={() => setCollaborators(prev => prev.map(c => c.email === collab.email ? { ...c, role: 'Editor' } : c))} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] rounded-md flex items-center gap-2">
-                              {collab.role === 'Editor' && <Check size={12} className="text-blue-500" />}
-                              {collab.role !== 'Editor' && <span className="w-3" />}
-                              Editor
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setCollaborators(prev => prev.map(c => c.email === collab.email ? { ...c, role: 'Viewer' } : c))} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] rounded-md flex items-center gap-2">
-                              {collab.role === 'Viewer' && <Check size={12} className="text-blue-500" />}
-                              {collab.role !== 'Viewer' && <span className="w-3" />}
-                              Viewer
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-ai-border my-1" />
-                            <DropdownMenuItem onClick={() => setCollaborators(prev => prev.filter(c => c.email !== collab.email))} className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-400 text-[13px] rounded-md flex items-center gap-2">
-                              <Trash2 size={13} /> Remove
-                            </DropdownMenuItem>
+                          <DropdownMenuContent align="end" className="w-[160px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-1">
+                            {['Editor', 'Viewer', 'Remove'].map(role => (
+                              <DropdownMenuItem
+                                key={role}
+                                onClick={() => setCollaborators(prev => prev.map(c => c.email === collab.email ? { ...c, role: role } : c))}
+                                className={`cursor-pointer text-[13px] rounded-[6px] ${role === 'Remove' ? 'text-red-500 focus:text-red-500 focus:bg-red-500/10' : 'text-ai-text focus:bg-ai-hover-1'}`}
+                              >
+                                {role}
+                              </DropdownMenuItem>
+                            ))}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
@@ -1349,11 +1467,11 @@ function NavItem({
       variant="ghost"
       onClick={onClick}
       className={`h-[36px] w-full flex items-center justify-between rounded-[8px] cursor-pointer transition-all ${!expanded ? "px-0 justify-center w-[36px] mx-auto" : "px-3"
-        } ${active ? "text-[#0782f5] font-medium shadow-none bg-[#0782f5]/10 dark:bg-[#0782f5]/15 hover:bg-[#0782f5]/20" : "hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text font-medium"} text-[14px]`}
+        } ${active ? "text-[var(--ai-accent)] font-medium shadow-none bg-[var(--ai-accent)]/10 dark:bg-[var(--ai-accent)]/15 hover:bg-[var(--ai-accent)]/20" : "hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text font-medium"} text-[14px]`}
       title={!expanded ? label : undefined}
     >
       <div className="flex items-center">
-        <div className={`flex items-center justify-center shrink-0 ${expanded ? "mr-3" : ""} ${active ? "text-ai-text" : "text-ai-text-secondary"}`}>
+        <div className={`flex items-center justify-center shrink-0 ${expanded ? "mr-3" : ""} ${active ? "text-[var(--ai-accent)]" : "text-ai-text-secondary"}`}>
           {icon}
         </div>
         {expanded && <span>{label}</span>}
@@ -1381,9 +1499,11 @@ function DataRow({
   showEdit,
   isLink,
   disabled,
+  isPidi,
   onViewDetails,
   onViewModel,
-  onDelete
+  onDelete,
+  onCommentsClick
 }: {
   clave?: string;
   subClave?: string;
@@ -1398,24 +1518,25 @@ function DataRow({
   showEdit?: boolean;
   isLink?: boolean;
   disabled?: boolean;
+  isPidi?: boolean;
   onViewDetails?: (caseData: any) => void;
   onViewModel?: (caseData: any) => void;
   onDelete?: () => void;
+  onCommentsClick?: () => void;
 }) {
   const [isMoveOpen, setIsMoveOpen] = useState(false);
   const [moveStep, setMoveStep] = useState<'select' | 'create'>('select');
 
-  if (!clave || !proyecto) return null;
+  if (!clave) return null;
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [newProjectName, setNewProjectName] = useState("");
-  const [isShareOpen, setIsShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteSearch, setInviteSearch] = useState("");
   const [collaborators, setCollaborators] = useState<{ initials: string; name: string; email: string; role: string; color: string }[]>([
     { initials: 'CM', name: 'Claudio Martínez', email: 'claudio@hospital.es', role: 'Owner', color: 'bg-purple-600' },
-    { initials: 'LR', name: 'Laura Ruiz', email: 'laura@hospital.es', role: 'Editor', color: 'bg-blue-600' },
+    { initials: 'LR', name: 'Laura Ruiz', email: 'laura@hospital.es', role: 'Editor', color: 'bg-[var(--ai-accent)]' },
     { initials: 'PG', name: 'Pedro García', email: 'pedro@hospital.es', role: 'Viewer', color: 'bg-teal-600' },
   ]);
 
@@ -1424,9 +1545,6 @@ function DataRow({
     setMoveStep('select');
   };
 
-  const handleShareClick = () => {
-    setIsShareOpen(true);
-  };
 
   const handleInviteClick = () => {
     setIsInviteOpen(true);
@@ -1444,8 +1562,11 @@ function DataRow({
         <div className="flex flex-col gap-1 items-start min-w-0">
           <span className="font-bold text-[15px] max-[1680px]:text-[13.5px] truncate w-full leading-tight uppercase tracking-tight">{subProyecto}</span>
           <div className="flex items-center gap-2 text-[11.5px] text-ai-text-secondary font-medium truncate w-full">
-            <span className="text-ai-text-secondary/70 font-mono text-[10px] bg-ai-base px-1.5 py-0.5 rounded border border-ai-border shrink-0">{clave}</span>
-            <span className="text-ai-text-secondary/80 truncate">{proyecto}</span>
+            <span className="text-ai-text-secondary/70 font-mono text-[10px] bg-ai-base px-1.5 py-0.5 rounded-[8px] border border-ai-border shrink-0">{clave}</span>
+            {isPidi && (
+              <span className="text-blue-500 font-bold text-[8.5px] px-1.5 py-0.5 rounded-[6px] border border-blue-500/20 uppercase tracking-[0.05em] shrink-0 bg-blue-500/5">PIDI</span>
+            )}
+            <span className="text-ai-text-secondary/80 truncate">{subClave}</span>
           </div>
         </div>
       </TableCell>
@@ -1474,7 +1595,7 @@ function DataRow({
                     {avatar.initials}
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="bg-gray-800 text-white border-none shadow-lg text-[13px]">
+                <TooltipContent className="bg-gray-800 text-white border-none text-[13px]">
                   <p>{avatar.name} {i === 0 ? "(Owner)" : ""}</p>
                 </TooltipContent>
               </Tooltip>
@@ -1497,7 +1618,7 @@ function DataRow({
                 onViewModel?.({ clave, subClave, proyecto, subProyecto, status, subStatus, statusColor, avatars });
               }
             }}
-            className={`flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-bold border w-fit transition-all ${
+            className={`flex items-center gap-2 px-3 py-1 rounded-[8px] text-[12px] font-bold border w-fit transition-all ${
               status === 'Completed' ? 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/15' :
               status === 'In progress' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
               status === 'Blocked' ? 'bg-red-500/10 text-red-600 border-red-500/20' :
@@ -1526,13 +1647,13 @@ function DataRow({
           {showEdit && <Edit size={16} className="cursor-pointer hover:text-ai-text transition-colors mr-2" />}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-[28px] w-[28px] text-ai-text-tertiary hover:text-ai-text hover:bg-ai-hover-1 rounded-full cursor-pointer">
+              <Button variant="ghost" size="icon" className="h-[28px] w-[28px] text-ai-text-tertiary hover:text-ai-text hover:bg-ai-hover-1 rounded-[8px] cursor-pointer">
                 <MoreVertical size={16} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-[240px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-2 shadow-2xl space-y-1"
+              className="w-[240px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-2 space-y-1"
             >
               <DropdownMenuItem
                 onClick={() => onViewDetails && onViewDetails({ clave, subClave, proyecto, subProyecto, status, subStatus, statusColor, avatars })}
@@ -1556,30 +1677,25 @@ function DataRow({
                 <Folder size={18} className="text-ai-text-secondary" />
                 <span className="font-medium text-[14px]">Move</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text">
-                <MessageCircle size={18} className="text-ai-text-secondary" />
-                <span className="font-medium text-[14px]">Comments</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleShareClick}
+              <DropdownMenuItem 
+                onClick={onCommentsClick}
                 className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
               >
-                <Share2 size={18} className="text-ai-text-secondary" />
-                <span className="font-medium text-[14px]">Share link</span>
+                <MessageCircle size={18} className="text-ai-text-secondary" />
+                <span className="font-medium text-[14px]">Comments</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleInviteClick}
                 className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
               >
-                <Lock size={18} className="text-ai-text-secondary" />
-                <span className="font-medium text-[14px]">Invite collaborator</span>
+                <Share2 size={18} className="text-ai-text-secondary" />
+                <span className="font-medium text-[14px]">Share</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-ai-border mx-1 opacity-50" />
               <DropdownMenuItem
                 onClick={onDelete}
                 className="focus:bg-red-500/10 focus:text-red-500 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-red-500 transition-colors"
               >
-                <Trash2 size={18} />
+                <Trash2 size={18} className="text-red-500" strokeWidth={2.5} />
                 <span className="font-medium text-[14px]">Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -1596,27 +1712,27 @@ function DataRow({
                     {['Guest Project', 'Team project', 'General - Hepatobiliopancreática'].map(proj => (
                       <div key={proj} onClick={() => setSelectedProject(proj)} className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${selectedProject === proj ? 'bg-blue-500/10 border border-blue-500/50' : 'hover:bg-ai-hover-1 border border-transparent'}`}>
                         <div className="flex items-center gap-3">
-                          <Folder size={18} className={selectedProject === proj ? 'text-blue-500' : 'text-ai-text-secondary'} />
-                          <span className={`text-[14px] ${selectedProject === proj ? 'text-blue-500 font-medium' : 'text-ai-text'}`}>{proj}</span>
+                          <Folder size={18} className={selectedProject === proj ? 'text-[var(--ai-accent)]' : 'text-ai-text-secondary'} />
+                          <span className={`text-[14px] ${selectedProject === proj ? 'text-[var(--ai-accent)] font-medium' : 'text-ai-text'}`}>{proj}</span>
                         </div>
                         {selectedProject === proj && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                       </div>
                     ))}
                   </div>
                   <div className="p-4 border-t border-ai-border flex justify-between items-center bg-black/10 dark:bg-black/20">
-                    <Button variant="ghost" onClick={() => setMoveStep('create')} className="text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 px-3 h-[36px]">
+                    <Button variant="ghost" onClick={() => setMoveStep('create')} className="text-[var(--ai-accent)] hover:text-[var(--ai-accent-hover)] hover:bg-blue-500/10 px-3 h-[36px]">
                       + New folder
                     </Button>
                     <div className="flex gap-2">
                       <Button variant="ghost" onClick={() => setIsMoveOpen(false)} className="text-ai-text-secondary hover:text-ai-text h-[36px]">Cancel</Button>
-                      <Button disabled={!selectedProject} onClick={() => setIsMoveOpen(false)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-[8px] px-6 h-[36px]">Move</Button>
+                      <Button disabled={!selectedProject} onClick={() => setIsMoveOpen(false)} className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] text-white rounded-[8px] px-6 h-[36px]">Move</Button>
                     </div>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="p-5 pb-4 border-b border-ai-border flex items-center gap-3 w-full">
-                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0" onClick={() => setMoveStep('select')}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-[8px] shrink-0" onClick={() => setMoveStep('select')}>
                       <ArrowLeft size={16} className="text-ai-text-secondary" />
                     </Button>
                     <DialogTitle className="text-[16px] font-medium font-sans truncate pr-4">Move {clave}</DialogTitle>
@@ -1633,114 +1749,30 @@ function DataRow({
                   </div>
                   <div className="p-4 border-t border-ai-border flex justify-end gap-2 bg-black/10 dark:bg-black/20">
                     <Button variant="ghost" onClick={() => setIsMoveOpen(false)} className="text-ai-text-secondary hover:text-ai-text h-[36px]">Cancel</Button>
-                    <Button disabled={!newProjectName.trim()} onClick={() => setIsMoveOpen(false)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-[8px] px-6 h-[36px]">Mover</Button>
+                    <Button disabled={!newProjectName.trim()} onClick={() => setIsMoveOpen(false)} className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] text-white rounded-[8px] px-6 h-[36px]">Mover</Button>
                   </div>
                 </>
               )}
             </DialogContent>
           </Dialog>
 
-          {/* Share Link Modal */}
-          <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
-            <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-xl overflow-hidden gap-0">
-              <div className="p-5 pb-4 border-b border-ai-border">
-                <DialogTitle className="text-[16px] font-medium font-sans">Share case</DialogTitle>
-                <p className="text-[13px] text-ai-text-secondary mt-0.5">Share this case with others via link or platform</p>
-              </div>
-
-              {/* Copy Link Row */}
-              <div className="p-5 flex flex-col gap-4">
-                <div className="flex items-center h-[40px] rounded-[8px] border border-ai-border bg-ai-base px-3 gap-2 overflow-hidden group">
-                  <Link size={14} className="text-ai-text-tertiary shrink-0" />
-                  <span className="text-[12px] text-ai-text-secondary truncate flex-1 font-mono">
-                    https://cella.studio/case/{clave.toLowerCase().replace(/\s+/g, '-')}
-                  </span>
-                  <button
-                    onClick={handleCopyLink}
-                    className={`shrink-0 flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-[6px] transition-all ${linkCopied
-                      ? 'text-green-500 bg-green-500/10'
-                      : 'text-blue-500 hover:bg-blue-500/10'
-                      }`}
-                  >
-                    {linkCopied ? <><Check size={12} />Copied!</> : <><Copy size={12} />Copy</>}
-                  </button>
-                </div>
-
-                {/* Social Share Options */}
-                <div className="flex flex-col gap-2">
-                  <p className="text-[12px] text-ai-text-tertiary uppercase tracking-wide font-medium">Share via</p>
-                  <div className="grid grid-cols-5 gap-2">
-                    {/* Email */}
-                    <a
-                      href={`mailto:?subject=Check this case&body=https://cella.studio/case/${clave.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-[10px] bg-gray-100 dark:bg-[#1e1f22] hover:bg-gray-200 dark:hover:bg-[#27282c] transition-colors cursor-pointer group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-gray-500 flex items-center justify-center">
-                        <Mail size={18} className="text-white" />
-                      </div>
-                      <span className="text-[11px] text-ai-text-secondary group-hover:text-ai-text">Email</span>
-                    </a>
-                    {/* WhatsApp */}
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(`Check this case: https://cella.studio/case/${clave.toLowerCase().replace(/\s+/g, '-')}`)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-[10px] bg-gray-100 dark:bg-[#1e1f22] hover:bg-gray-200 dark:hover:bg-[#27282c] transition-colors cursor-pointer group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-[#25D366] flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-[18px] h-[18px]"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.126 1.527 5.857L0 24l6.335-1.516A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.8 9.8 0 01-5.003-1.367l-.36-.213-3.72.893.942-3.61-.234-.37A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z" /></svg>
-                      </div>
-                      <span className="text-[11px] text-ai-text-secondary group-hover:text-ai-text">WhatsApp</span>
-                    </a>
-                    {/* Telegram */}
-                    <a
-                      href={`https://t.me/share/url?url=${encodeURIComponent(`https://cella.studio/case/${clave.toLowerCase().replace(/\s+/g, '-')}`)}&text=${encodeURIComponent('Check this case')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-[10px] bg-gray-100 dark:bg-[#1e1f22] hover:bg-gray-200 dark:hover:bg-[#27282c] transition-colors cursor-pointer group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-[#2CA5E0] flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-[18px] h-[18px]"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.48 14.026 5.514 13.1c-.652-.204-.665-.652.136-.966l10.857-4.187c.544-.196 1.02.131.855.96z" /></svg>
-                      </div>
-                      <span className="text-[11px] text-ai-text-secondary group-hover:text-ai-text">Telegram</span>
-                    </a>
-                    {/* LinkedIn */}
-                    <a
-                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://cella.studio/case/${clave.toLowerCase().replace(/\s+/g, '-')}`)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-[10px] bg-gray-100 dark:bg-[#1e1f22] hover:bg-gray-200 dark:hover:bg-[#27282c] transition-colors cursor-pointer group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-[#0077B5] flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-[18px] h-[18px]"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
-                      </div>
-                      <span className="text-[11px] text-ai-text-secondary group-hover:text-ai-text">LinkedIn</span>
-                    </a>
-                    {/* Facebook */}
-                    <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://cella.studio/case/${clave.toLowerCase().replace(/\s+/g, '-')}`)}`}
-                      target="_blank" rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-[10px] bg-gray-100 dark:bg-[#1e1f22] hover:bg-gray-200 dark:hover:bg-[#27282c] transition-colors cursor-pointer group"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-[#1877F2] flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-[18px] h-[18px]"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-                      </div>
-                      <span className="text-[11px] text-ai-text-secondary group-hover:text-ai-text">Facebook</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           {/* Invite Collaborator Modal */}
           <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-            <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-xl overflow-hidden gap-0">
+            <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-xl overflow-hidden gap-0 [&>button]:top-[23px]">
               {/* Header */}
-              <div className="p-5 pb-4 border-b border-ai-border flex items-center justify-between">
-                <DialogTitle className="text-[16px] font-medium font-sans">Invitar colaborador</DialogTitle>
+              <div className="px-5 h-[64px] border-b border-ai-border flex items-center justify-between pr-12">
+                <DialogTitle className="text-[16px] font-medium font-sans">Share</DialogTitle>
+                <button
+                  onClick={handleCopyLink}
+                  className={`flex items-center gap-1.5 text-[12px] font-medium px-2 py-1.5 rounded-[8px] transition-all ${linkCopied
+                    ? 'text-green-500 bg-green-500/5'
+                    : 'text-ai-text-secondary hover:text-ai-accent'
+                    }`}
+                >
+                  <Link size={14} className={linkCopied ? 'text-green-500' : 'text-ai-text-tertiary'} />
+                  <span>{linkCopied ? 'Copied!' : 'Copy link'}</span>
+                </button>
               </div>
 
               <div className="p-5 flex flex-col gap-4">
@@ -1749,7 +1781,7 @@ function DataRow({
                   <div className="flex-1 flex items-center h-[40px] rounded-[8px] border border-ai-border bg-ai-base px-3 gap-2 focus-within:ring-1 focus-within:ring-ai-text-secondary/40 transition-shadow">
                     <input
                       type="email"
-                      placeholder="Introduzca un email"
+                      placeholder="Enter an email"
                       value={inviteEmail}
                       onChange={e => setInviteEmail(e.target.value)}
                       className="bg-transparent border-none outline-none text-[13px] text-ai-text w-full placeholder:text-ai-text-tertiary"
@@ -1758,9 +1790,9 @@ function DataRow({
                   <Button
                     disabled={!inviteEmail.includes('@')}
                     onClick={() => setInviteEmail('')}
-                    className="h-[40px] px-5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-[8px] text-[13px] font-medium shrink-0"
+                    className="h-[40px] px-5 bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] disabled:opacity-40 text-white rounded-[8px] text-[13px] font-medium shrink-0"
                   >
-                    Invitar
+                    Invite
                   </Button>
                 </div>
 
@@ -1768,19 +1800,19 @@ function DataRow({
                 <div className="flex items-center justify-between px-3 py-2 rounded-[8px] border border-ai-border bg-ai-base cursor-pointer hover:bg-ai-hover-1 transition-colors">
                   <div className="flex items-center gap-2">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-ai-text-secondary shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                    <span className="text-[13px] text-ai-text">Solo tienen acceso las personas invitadas</span>
+                    <span className="text-[13px] text-ai-text">Only invited people have access</span>
                   </div>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-ai-text-secondary shrink-0"><polyline points="6 9 12 15 18 9" /></svg>
                 </div>
 
                 {/* Search collaborators */}
                 <div className="flex flex-col gap-2">
-                  <p className="text-[12px] text-ai-text-tertiary uppercase tracking-wide font-medium">Colaboradores actuales</p>
+                  <p className="text-[12px] text-ai-text-tertiary uppercase tracking-wide font-medium">Current collaborators</p>
                   <div className="flex items-center h-[36px] rounded-[8px] border border-ai-border bg-ai-base px-3 gap-2">
                     <Search size={14} className="text-ai-text-tertiary shrink-0" />
                     <input
                       type="text"
-                      placeholder="Buscar por nombre o email"
+                      placeholder="Search by name or email"
                       value={inviteSearch}
                       onChange={e => setInviteSearch(e.target.value)}
                       className="bg-transparent border-none outline-none text-[13px] text-ai-text w-full placeholder:text-ai-text-tertiary"
@@ -1801,22 +1833,22 @@ function DataRow({
                             <span className="text-[11px] text-ai-text-tertiary truncate">{collab.email}</span>
                           </div>
                           {collab.role === 'Owner' ? (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0 bg-purple-500/10 text-purple-400">Owner</span>
+                            <span className="text-[11px] px-2 py-0.5 rounded-[8px] font-medium shrink-0 bg-purple-500/10 text-purple-400">Owner</span>
                           ) : (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <button className={`flex items-center gap-1 text-[12px] font-medium px-2 py-0.5 rounded-full shrink-0 transition-colors hover:opacity-80 ${collab.role === 'Editor' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
+                                <button className={`flex items-center gap-1 text-[12px] font-medium px-2 py-0.5 rounded-[8px] shrink-0 transition-colors hover:opacity-80 ${collab.role === 'Editor' ? 'bg-blue-500/10 text-[var(--ai-accent-hover)]' : 'bg-gray-500/10 text-gray-400'
                                   }`}>
                                   {collab.role}
                                   <ChevronDown size={10} />
                                 </button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-[160px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px] p-1">
+                              <DropdownMenuContent align="end" className="w-[160px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-1">
                                 <DropdownMenuItem
                                   onClick={() => setCollaborators(prev => prev.map(c => c.email === collab.email ? { ...c, role: 'Editor' } : c))}
                                   className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] rounded-md flex items-center gap-2"
                                 >
-                                  {collab.role === 'Editor' && <Check size={12} className="text-blue-500" />}
+                                  {collab.role === 'Editor' && <Check size={12} className="text-[var(--ai-accent)]" />}
                                   {collab.role !== 'Editor' && <span className="w-3" />}
                                   Editor
                                 </DropdownMenuItem>
@@ -1824,17 +1856,16 @@ function DataRow({
                                   onClick={() => setCollaborators(prev => prev.map(c => c.email === collab.email ? { ...c, role: 'Viewer' } : c))}
                                   className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] rounded-md flex items-center gap-2"
                                 >
-                                  {collab.role === 'Viewer' && <Check size={12} className="text-blue-500" />}
+                                  {collab.role === 'Viewer' && <Check size={12} className="text-[var(--ai-accent)]" />}
                                   {collab.role !== 'Viewer' && <span className="w-3" />}
                                   Viewer
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-ai-border my-1" />
                                 <DropdownMenuItem
                                   onClick={() => setCollaborators(prev => prev.filter(c => c.email !== collab.email))}
-                                  className="cursor-pointer text-red-400 focus:bg-red-500/10 focus:text-red-400 text-[13px] rounded-md flex items-center gap-2"
+                                  className="cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500 text-[13px] rounded-md flex items-center gap-2"
                                 >
-                                  <Trash2 size={13} />
-                                  Remove
+                                  <Trash2 size={13} className="text-red-500" />
+                                  Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -1853,7 +1884,19 @@ function DataRow({
   );
 }
 
-function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelect: (c: any) => void; onViewModel: (c: any) => void; cases: CaseItem[]; setCases: React.Dispatch<React.SetStateAction<CaseItem[]>> }) {
+function CasesView({ 
+  onCaseSelect, 
+  onViewModel, 
+  cases, 
+  setCases,
+  onCommentsClick 
+}: { 
+  onCaseSelect: (c: any) => void; 
+  onViewModel: (c: any) => void; 
+  cases: CaseItem[]; 
+  setCases: React.Dispatch<React.SetStateAction<CaseItem[]>>;
+  onCommentsClick: () => void;
+}) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
@@ -1879,10 +1922,10 @@ function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelec
                   {filter} <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 {['All', 'Blocked', 'Pending', 'In progress', 'Completed'].map(f => (
                   <DropdownMenuItem key={f} onClick={() => setFilter(f)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                    {filter === f && <Check size={12} className="text-blue-500" />}
+                    {filter === f && <Check size={12} className="text-[var(--ai-accent)]" />}
                     {filter !== f && <span className="w-3" />}
                     {f}
                   </DropdownMenuItem>
@@ -1907,10 +1950,10 @@ function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelec
                   {sort} <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[200px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 {['Most recent', 'Least recent', 'A-Z', 'Z-A'].map(s => (
                   <DropdownMenuItem key={s} onClick={() => setSort(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                    {sort === s && <Check size={12} className="text-blue-500" />}
+                    {sort === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                     {sort !== s && <span className="w-3" />}
                     {s === 'A-Z' ? 'Alphabetical (A-Z)' : s === 'Z-A' ? 'Alphabetical (Z-A)' : s}
                   </DropdownMenuItem>
@@ -1924,7 +1967,7 @@ function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelec
       <div className="border border-ai-border rounded-[8px] overflow-hidden w-full">
         <Table className="w-full text-[13px]">
           <TableHeader>
-            <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px] bg-ai-surface cursor-default">
+            <TableRow className="border-b border-ai-border h-[40px] bg-ai-surface hover:bg-ai-surface cursor-default">
               <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
@@ -1945,12 +1988,133 @@ function CasesView({ onCaseSelect, onViewModel, cases, setCases }: { onCaseSelec
                 onViewModel={onViewModel}
                 onViewDetails={onCaseSelect}
                 onDelete={() => setCases(prev => prev.filter(x => x.id !== c.id))}
+                onCommentsClick={onCommentsClick}
               />
             ))}
           </TableBody>
         </Table>
       </div>
     </div>
+  );
+}
+
+function CommentsSidebar({ 
+  open, 
+  onOpenChange, 
+  comments, 
+  onAddComment,
+  onViewIn3D 
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+  comments: CommentItem[];
+  onAddComment: (text: string) => void;
+  onViewIn3D?: (comment: CommentItem) => void;
+}) {
+  const [newComment, setNewComment] = useState("");
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-[450px] sm:w-[540px] bg-white dark:bg-ai-surface border-ai-border p-0 flex flex-col gap-0">
+        <SheetHeader className="px-6 py-5 border-b border-ai-border shrink-0">
+          <div className="flex items-center justify-between mt-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-ai-base flex items-center justify-center border border-ai-border">
+                <MessageSquare size={20} className="text-ai-text-secondary" />
+              </div>
+              <div className="flex flex-col">
+                <SheetTitle className="text-[18px] font-bold text-ai-text">Comments</SheetTitle>
+                <span className="text-[12px] text-ai-text-tertiary">{comments.length} messages in this case</span>
+              </div>
+            </div>
+          </div>
+        </SheetHeader>
+
+        <ScrollArea className="flex-1 p-6">
+          <div className="flex flex-col gap-8">
+            {comments.map((comment) => (
+              <div key={comment.id} className="flex flex-col gap-4">
+                <div className="flex gap-4">
+                  <Avatar className="w-9 h-9 border border-ai-border shrink-0">
+                    <AvatarFallback className={`${comment.color} text-white text-[11px] font-bold`}>{comment.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[14px] font-bold text-ai-text">{comment.user}</span>
+                      <span className="text-[11px] text-ai-text-tertiary">{comment.time}</span>
+                    </div>
+                    <div className="bg-ai-base/50 dark:bg-black/20 p-4 rounded-[8px] rounded-tl-none border border-ai-border/40 relative">
+                      {comment.type === 'model' && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center border-2 border-white dark:border-ai-surface shadow-sm" title="Model annotation">
+                          <Box size={12} />
+                        </div>
+                      )}
+                      <p className="text-[13px] text-ai-text leading-relaxed whitespace-pre-wrap">{comment.text}</p>
+                      
+                      {comment.type === 'model' && onViewIn3D && (
+                        <button 
+                          onClick={() => onViewIn3D(comment)}
+                          className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors cursor-pointer uppercase tracking-wider group/btn"
+                        >
+                          <Monitor size={12} className="group-hover/btn:scale-110 transition-transform" />
+                          View in 3D
+                        </button>
+                      )}
+                    </div>
+                    <button className="text-[12px] font-bold text-[var(--ai-accent)] hover:text-[var(--ai-accent-hover)] w-fit transition-colors">Reply</button>
+                  </div>
+                </div>
+
+                {comment.replies.map(reply => (
+                  <div key={reply.id} className="flex gap-4 ml-12">
+                    <Avatar className="w-8 h-8 border border-ai-border shrink-0">
+                      <AvatarFallback className={`${reply.color} text-white text-[10px] font-bold`}>{reply.initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col gap-2 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[13px] font-bold text-ai-text">{reply.user}</span>
+                        <span className="text-[11px] text-ai-text-tertiary">{reply.time}</span>
+                      </div>
+                      <div className="bg-blue-500/5 dark:bg-blue-500/10 p-3.5 rounded-[8px] rounded-tl-none border border-blue-500/10">
+                        <p className="text-[13px] text-ai-text leading-relaxed font-medium">{reply.text}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <div className="p-6 border-t border-ai-border bg-ai-base/30 dark:bg-black/20 shrink-0">
+          <div className="flex flex-col gap-3">
+             <div className="relative group">
+               <textarea 
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Ask a question or provide feedback..."
+                  className="w-full min-h-[120px] p-4 rounded-[8px] border border-ai-border bg-white dark:bg-ai-surface outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[14px] text-ai-text resize-none"
+               />
+               <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                 <Button 
+                   onClick={() => {
+                     if (newComment.trim()) {
+                       onAddComment(newComment);
+                       setNewComment("");
+                     }
+                   }}
+                   disabled={!newComment.trim()}
+                   className="h-9 px-5 bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] text-white rounded-[8px] text-[13px] font-bold disabled:opacity-50"
+                 >
+                   Send Message
+                 </Button>
+               </div>
+             </div>
+             <p className="text-[11px] text-ai-text-tertiary px-1">Specialists usually respond within 2-4 hours.</p>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -1970,28 +2134,28 @@ function ContactSidebar({
         />
       )}
       <div
-        className={`fixed top-0 right-0 h-full w-[450px] bg-white dark:bg-ai-surface border-l border-ai-border shadow-2xl z-[100] transition-transform duration-300 ease-out flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-[450px] bg-white dark:bg-ai-surface border-l border-ai-border z-[100] transition-transform duration-300 ease-out flex flex-col ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="p-6 border-b border-ai-border flex items-center justify-between bg-white dark:bg-ai-surface">
           <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-bold text-blue-500 uppercase tracking-widest leading-none">Contact Specialist</span>
+            <span className="text-[12px] font-bold text-[var(--ai-accent)] uppercase tracking-widest leading-none">Contact Specialist</span>
             <h2 className="text-[20px] font-semibold text-ai-text">Laura Gómez</h2>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => onOpenChange(false)}
-            className="h-8 w-8 rounded-full hover:bg-ai-hover-1 text-ai-text-tertiary"
+            className="h-8 w-8 rounded-[8px] hover:bg-ai-hover-1 text-ai-text-tertiary"
           >
             <X size={18} />
           </Button>
         </div>
 
         <div className="p-8 flex flex-col gap-6 overflow-y-auto">
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-            <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-ai-border/50">
+          <div className="flex items-start gap-4 p-4 rounded-[8px] bg-blue-500/5 border border-blue-500/10">
+            <div className="w-12 h-12 rounded-[8px] overflow-hidden shrink-0 border border-ai-border/50">
               <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop" alt="Laura Gómez" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
@@ -2004,20 +2168,20 @@ function ContactSidebar({
             <div className="flex flex-col gap-2">
               <label className="text-[12px] font-bold text-ai-text-secondary uppercase">Subject</label>
               <input 
-                className="h-10 px-3 rounded-lg border border-ai-border bg-ai-base text-[13px] focus:ring-1 focus:ring-blue-500 outline-none" 
+                className="h-10 px-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] focus:ring-1 focus:ring-[var(--ai-accent)] outline-none" 
                 placeholder="Case #ID224593 - Documentation inquiry"
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-[12px] font-bold text-ai-text-secondary uppercase">Message</label>
               <textarea 
-                className="h-[150px] p-3 rounded-lg border border-ai-border bg-ai-base text-[13px] focus:ring-1 focus:ring-blue-500 outline-none resize-none" 
+                className="h-[150px] p-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] focus:ring-1 focus:ring-[var(--ai-accent)] outline-none resize-none" 
                 placeholder="Write your message here..."
               />
             </div>
           </div>
 
-          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-[48px] font-bold shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all">
+          <Button className="w-full bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] text-white dark:text-[#041e49] rounded-[8px] h-[48px] font-bold active:scale-[0.98] transition-all">
             Send Message
           </Button>
         </div>
@@ -2060,7 +2224,7 @@ function SmartSearchInput({
         )}
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute top-[calc(100%+4px)] left-0 w-full z-50 bg-white dark:bg-ai-surface border border-ai-border rounded-[8px] shadow-lg overflow-hidden">
+        <div className="absolute top-[calc(100%+4px)] left-0 w-full z-50 bg-white dark:bg-ai-surface border border-ai-border rounded-[8px] overflow-hidden">
           {filtered.map(s => (
             <button
               key={s}
@@ -2075,14 +2239,16 @@ function SmartSearchInput({
     </div>
   );
 }
-function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
+function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases, onShareClick }: {
   onProjectClick: (key: string) => void;
   projectNames: Record<string, string>;
   onTitleChange: (key: string, newTitle: string) => void;
   cases: CaseItem[];
+  onShareClick: () => void;
 }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [localTitle, setLocalTitle] = useState("");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Filter / sort state
   const [projSearch, setProjSearch] = useState("");
@@ -2132,7 +2298,7 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
 
   // Theme-aware thumbnail cell (no dots, no decorations)
   const ThumbnailCell = ({ letter }: { letter: string }) => (
-    <div className="rounded-lg flex items-center justify-center bg-ai-hover-1 dark:bg-[#1d1f22]">
+    <div className="rounded-[8px] flex items-center justify-center bg-ai-hover-1 dark:bg-[#1d1f22]">
       <span className="text-[18px] font-semibold text-black/20 dark:text-white/20 select-none">{letter}</span>
     </div>
   );
@@ -2143,6 +2309,11 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
       keyName: "Guest Project",
       title: projectNames["Guest Project"] || "Guest Project",
       stats: "1 case",
+      color: "bg-blue-500",
+      collaborators: [
+        { name: "Ana Silva", initials: "AS", color: "bg-blue-600", role: "Owner" },
+        { name: "Claudio Martínez", initials: "CM", color: "bg-purple-600", role: "Editor" }
+      ],
       thumbnails: [<ThumbnailCell key="1" letter="G" />, <ThumbnailCell key="2" letter="S" />, <ThumbnailCell key="3" letter="C" />, <ThumbnailCell key="4" letter="N" />]
     },
     {
@@ -2150,21 +2321,53 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
       keyName: "Team project",
       title: projectNames["Team project"] || "Team project",
       stats: "4 cases",
+      color: "bg-purple-500",
+      collaborators: [
+        { name: "Claudio Martínez", initials: "CM", color: "bg-purple-600", role: "Owner" },
+        { name: "Daniela Ríos", initials: "DR", color: "bg-teal-600", role: "Editor" }
+      ],
       thumbnails: [
-        <div key="1" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-lg flex items-center justify-center">
+        <div key="1" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-[8px] flex items-center justify-center">
           <span className="text-[18px] font-semibold text-black/20 dark:text-white/20 select-none">T</span>
         </div>,
-        <div key="2" className="bg-blue-500/10 dark:bg-[#0052ff]/20 rounded-lg flex items-center justify-center">
+        <div key="2" className="bg-blue-500/10 dark:bg-[#0052ff]/20 rounded-[8px] flex items-center justify-center">
           <span className="text-[18px] font-semibold text-black/20 dark:text-white/25 select-none">M</span>
         </div>,
         <ThumbnailCell key="3" letter="A" />,
         <ThumbnailCell key="4" letter="R" />,
+      ]
+    },
+    {
+      id: 3,
+      keyName: "PIDI Projects",
+      title: projectNames["PIDI Projects"] || "PIDI Projects",
+      stats: "2 cases",
+      color: "bg-amber-500",
+      collaborators: [
+        { name: "Ana Silva", initials: "AS", color: "bg-blue-600", role: "Owner" }
+      ],
+      thumbnails: [
+        <div key="1" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-[8px] flex items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-blue-500/5" />
+          <span className="text-[18px] font-semibold text-blue-500/20 select-none z-10">P</span>
+        </div>,
+        <div key="2" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-[8px] flex items-center justify-center">
+          <span className="text-[18px] font-semibold text-black/20 dark:text-white/20 select-none">I</span>
+        </div>,
+        <div key="3" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-[8px] flex items-center justify-center">
+          <span className="text-[18px] font-semibold text-black/20 dark:text-white/20 select-none">D</span>
+        </div>,
+        <div key="4" className="bg-ai-hover-1 dark:bg-[#1d1f22] rounded-[8px] flex items-center justify-center">
+          <span className="text-[18px] font-semibold text-black/20 dark:text-white/20 select-none">I</span>
+        </div>
       ]
     }
   ];
 
   const extraProjectCards = extraProjects.map(p => ({
     ...p,
+    color: "bg-gray-500",
+    collaborators: [{ name: "Ana Silva", initials: "AS", color: "bg-blue-600", role: "Owner" }],
     thumbnails: [
       <ThumbnailCell key="1" letter={p.title.charAt(0).toUpperCase()} />,
       <ThumbnailCell key="2" letter="+" />,
@@ -2211,12 +2414,12 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
             <TooltipTrigger asChild>
               <button
                 onClick={openNewModal}
-                className="flex items-center justify-center w-7 h-7 rounded-full border border-ai-border bg-ai-surface hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer shrink-0"
+                className="flex items-center justify-center w-7 h-7 rounded-[8px] border border-ai-border bg-ai-surface hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer shrink-0"
               >
                 <Plus size={14} />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" align="center" className="bg-white dark:bg-ai-surface border-ai-border text-ai-text-secondary text-[12px] px-3 py-1.5 shadow-md [&>svg]:fill-ai-surface">
+            <TooltipContent side="bottom" align="center" className="bg-white dark:bg-ai-surface border-ai-border text-ai-text-secondary text-[12px] px-3 py-1.5 rounded-[8px] [&>svg]:fill-ai-surface">
               Create new project
             </TooltipContent>
           </Tooltip>
@@ -2233,6 +2436,31 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
           className="w-[320px]"
         />
         <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center bg-ai-base dark:bg-ai-surface/50 p-1 rounded-[8px] border border-ai-border h-[36px]">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center justify-center px-3 h-[28px] rounded-[6px] transition-all cursor-pointer gap-2 ${
+                viewMode === 'grid' 
+                  ? "bg-white dark:bg-ai-hover-1 text-ai-text border border-ai-border/50" 
+                  : "text-ai-text-secondary hover:text-ai-text"
+              }`}
+            >
+              <LayoutGrid size={13} />
+              <span className="text-[12px] font-medium">Grid</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center px-3 h-[28px] rounded-[6px] transition-all cursor-pointer gap-2 ${
+                viewMode === 'list' 
+                  ? "bg-white dark:bg-ai-hover-1 text-ai-text border border-ai-border/50" 
+                  : "text-ai-text-secondary hover:text-ai-text"
+              }`}
+            >
+              <List size={13} />
+              <span className="text-[12px] font-medium">List</span>
+            </button>
+          </div>
+          <div className="w-px h-5 bg-ai-border mx-1" />
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[8px] px-3 text-[13px] font-normal gap-2 flex items-center cursor-pointer">
@@ -2240,7 +2468,7 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                 <span>{projDateRange?.from ? (projDateRange.to ? <>{format(projDateRange.from, "LLL dd, y")} - {format(projDateRange.to, "LLL dd, y")}</> : format(projDateRange.from, "LLL dd, y")) : <span>Date</span>}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 border-ai-border bg-ai-surface shadow-md rounded-[8px]" align="end">
+            <PopoverContent className="w-auto p-0 border-ai-border bg-ai-surface rounded-[8px]" align="end">
               <Calendar initialFocus mode="range" defaultMonth={projDateRange?.from} selected={projDateRange} onSelect={setProjDateRange} numberOfMonths={2} />
             </PopoverContent>
           </Popover>
@@ -2250,10 +2478,10 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                 {projSort} <ChevronDown size={14} className="text-ai-text-tertiary" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+            <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
               {['Most recent', 'Least recent', 'Alphabetical (A-Z)', 'Alphabetical (Z-A)'].map(s => (
                 <DropdownMenuItem key={s} onClick={() => setProjSort(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                  {projSort === s && <Check size={12} className="text-blue-500" />}
+                  {projSort === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                   {projSort !== s && <span className="w-3" />}
                   {s}
                 </DropdownMenuItem>
@@ -2265,7 +2493,7 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
 
       {/* Rename modal */}
       <Dialog open={renameId !== null} onOpenChange={() => setRenameId(null)}>
-        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border rounded-[16px] p-0 overflow-hidden max-w-[380px] shadow-xl">
+        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-0 overflow-hidden max-w-[380px]">
           <div className="px-6 pt-6 pb-4 border-b border-ai-border">
             <DialogTitle className="text-[15px] font-semibold text-ai-text">Rename project</DialogTitle>
           </div>
@@ -2279,14 +2507,14 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                 if (e.key === 'Enter') handleSaveTitle(renameId!, allProjects.find(p => p.id === renameId)?.keyName ?? "", renameValue);
                 if (e.key === 'Escape') setRenameId(null);
               }}
-              className="w-full h-[40px] px-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] text-ai-text outline-none focus:ring-1 focus:ring-[#0782f5] transition"
+              className="w-full h-[40px] px-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] text-ai-text outline-none focus:ring-1 focus:ring-[var(--ai-accent)] transition"
             />
           </div>
           <div className="flex justify-end gap-2 px-6 pb-5">
             <Button variant="ghost" onClick={() => setRenameId(null)} className="text-[13px] cursor-pointer">Cancel</Button>
             <Button
               onClick={() => handleSaveTitle(renameId!, allProjects.find(p => p.id === renameId)?.keyName ?? "", renameValue)}
-              className="bg-[#0782f5] hover:bg-[#0782f5]/90 text-white text-[13px] rounded-[8px] cursor-pointer"
+              className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/90 text-white text-[13px] rounded-[8px] cursor-pointer"
             >Save</Button>
           </div>
         </DialogContent>
@@ -2294,7 +2522,7 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
 
       {/* New Project Modal */}
       <Dialog open={showNewModal} onOpenChange={setShowNewModal}>
-        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border rounded-[20px] p-0 overflow-hidden max-w-[490px] shadow-xl">
+        <DialogContent className="bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-0 overflow-hidden max-w-[490px]">
           {modalStep === 1 ? (
             <div className="flex flex-col">
               <div className="px-6 pt-6 pb-4 border-b border-ai-border">
@@ -2310,12 +2538,12 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && newName.trim()) setModalStep(2); }}
-                  className="w-full h-[40px] px-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] text-ai-text placeholder:text-ai-text-tertiary outline-none focus:ring-1 focus:ring-[#0782f5] transition"
+                  className="w-full h-[40px] px-3 rounded-[8px] border border-ai-border bg-ai-base text-[13px] text-ai-text placeholder:text-ai-text-tertiary outline-none focus:ring-1 focus:ring-[var(--ai-accent)] transition"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 px-6 pb-6">
                 <Button variant="ghost" onClick={() => setShowNewModal(false)} className="text-[13px] text-ai-text-secondary hover:text-ai-text cursor-pointer">Cancel</Button>
-                <Button disabled={!newName.trim()} onClick={() => setModalStep(2)} className="bg-[#0782f5] hover:bg-[#0782f5]/90 text-white text-[13px] rounded-[8px] cursor-pointer">Continue</Button>
+                <Button disabled={!newName.trim()} onClick={() => setModalStep(2)} className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/90 text-white text-[13px] rounded-[8px] cursor-pointer">Continue</Button>
               </div>
             </div>
           ) : (
@@ -2342,10 +2570,10 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                       {modalSort} <ChevronDown size={13} className="text-ai-text-tertiary" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+                  <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                     {['Alphabetical (A-Z)', 'Alphabetical (Z-A)'].map(s => (
                       <DropdownMenuItem key={s} onClick={() => setModalSort(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                        {modalSort === s && <Check size={12} className="text-blue-500" />}
+                        {modalSort === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                         {modalSort !== s && <span className="w-3" />}
                         {s}
                       </DropdownMenuItem>
@@ -2359,8 +2587,8 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
                   const selected = selectedCases.includes(c.id);
                   return (
                     <button key={c.id} onClick={() => toggleCase(c.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-left transition-colors cursor-pointer ${selected ? 'bg-[#0782f5]/10 border border-[#0782f5]/30' : 'hover:bg-ai-hover-1 border border-transparent'}`}>
-                      <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${selected ? 'bg-[#0782f5] border-[#0782f5]' : 'border-ai-border'}`}>
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-left transition-colors cursor-pointer ${selected ? 'bg-[var(--ai-accent)]/10 border border-[var(--ai-accent)]/30' : 'hover:bg-ai-hover-1 border border-transparent'}`}>
+                      <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${selected ? 'bg-[var(--ai-accent)] border-[var(--ai-accent)]' : 'border-ai-border'}`}>
                         {selected && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -2373,7 +2601,7 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
               </div>
               <div className="flex items-center justify-between px-6 pb-5 pt-3 border-t border-ai-border">
                 <button onClick={() => handleCreateProject(true)} className="text-[13px] text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer">Skip for now</button>
-                <Button onClick={() => handleCreateProject(false)} className="bg-[#0782f5] hover:bg-[#0782f5]/90 text-white text-[13px] rounded-[8px] cursor-pointer">
+                <Button onClick={() => handleCreateProject(false)} className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/90 text-white text-[13px] rounded-[8px] cursor-pointer">
                   Create project{selectedCases.length > 0 ? ` (${selectedCases.length})` : ""}
                 </Button>
               </div>
@@ -2382,58 +2610,195 @@ function ProjectsView({ onProjectClick, projectNames, onTitleChange, cases }: {
         </DialogContent>
       </Dialog>
 
-      {/* Cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sortedProjects.map(project => (
-          <div key={project.id} onClick={() => onProjectClick(project.keyName)} className="bg-ai-surface border border-ai-border rounded-[20px] overflow-hidden cursor-pointer hover:border-ai-border-strong transition-colors group relative flex flex-col">
+      {/* Content — Grid or List */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-500">
+          {sortedProjects.map(project => (
+            <div key={project.id} onClick={() => onProjectClick(project.keyName)} className="bg-ai-surface border border-ai-border rounded-[8px] overflow-hidden cursor-pointer hover:border-ai-border-strong transition-colors group relative flex flex-col">
 
-            {/* Thumbnails Grid */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-[3px] w-full bg-ai-base dark:bg-[#101113] p-[10px]" style={{ aspectRatio: '1/1' }}>
-              {project.thumbnails}
-            </div>
-
-            {/* Title / Stats */}
-            <div className="flex flex-col gap-0.5 px-4 py-3 relative">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-medium text-ai-text group-hover:text-blue-500 transition-colors leading-tight truncate pr-2">
-                  {project.title}
-                </span>
+              {/* Thumbnails Grid */}
+              <div className="grid grid-cols-2 grid-rows-2 gap-[3px] w-full bg-ai-base dark:bg-[#101113] p-[10px]" style={{ aspectRatio: '1/1' }}>
+                {project.thumbnails}
               </div>
-              <div className="flex items-center justify-between mt-0.5">
-                <span className="text-[13px] text-ai-text-secondary">{project.stats}</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button onClick={(e) => e.stopPropagation()} className="p-1 bg-transparent hover:bg-ai-hover-1 rounded-md transition-colors cursor-pointer">
-                      <MoreHorizontal size={16} className="text-ai-text-secondary" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent onClick={(e) => e.stopPropagation()} align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border p-1.5 rounded-xl shadow-lg">
-                    <DropdownMenuItem className="cursor-pointer text-ai-text focus:bg-ai-hover-1 rounded-md py-2">Open in new tab</DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="cursor-pointer text-ai-text focus:bg-ai-hover-1 rounded-md py-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRenameId(project.id);
-                        setRenameValue(project.title);
-                      }}
+
+              {/* Title / Stats */}
+              <div className="flex flex-col gap-0.5 px-4 py-3 relative">
+                <div className="flex items-center justify-between">
+                  <span className="text-[15px] font-medium text-ai-text group-hover:text-[var(--ai-accent)] transition-colors leading-tight truncate pr-2">
+                    {project.title}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-2.5">
+                  <div className="flex -space-x-2">
+                    {project.collaborators?.map((collab: any, idx: number) => (
+                      <TooltipProvider key={idx}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-6 h-6 rounded-full border-2 border-white dark:border-ai-surface bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center shrink-0 relative">
+                              <span className="text-[9px] font-bold text-ai-text-secondary">{collab.initials}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-[11px] bg-ai-base border border-ai-border p-1.5 rounded-[8px]">
+                            {collab.name} ({collab.role})
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button onClick={(e) => e.stopPropagation()} className="p-1 bg-transparent hover:bg-ai-hover-1 rounded-[8px] transition-colors cursor-pointer">
+                        <MoreHorizontal size={16} className="text-ai-text-secondary" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      onClick={(e) => e.stopPropagation()} 
+                      align="end" 
+                      className="w-[240px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-2 space-y-1"
                     >
-                      Rename
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="my-1 bg-ai-border" />
-                    <DropdownMenuItem className="cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500 rounded-md py-2 flex items-center justify-between">
-                      <span className="font-medium">Delete</span>
-                      <Trash2 size={16} className="text-red-500" />
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuItem className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text">
+                        <ExternalLink size={18} className="text-ai-text-secondary" />
+                        <span className="font-medium text-[14px]">Open in new tab</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameId(project.id);
+                          setRenameValue(project.title);
+                        }}
+                      >
+                        <Edit size={18} className="text-ai-text-secondary" />
+                        <span className="font-medium text-[14px]">Rename</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onShareClick();
+                        }}
+                      >
+                        <Share2 size={18} className="text-ai-text-secondary" />
+                        <span className="font-medium text-[14px]">Share</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-1 bg-ai-border" />
+                      <DropdownMenuItem 
+                        className="focus:bg-red-500/10 focus:text-red-500 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-red-500 transition-colors"
+                      >
+                        <Trash2 size={18} className="text-red-500" strokeWidth={2.5} />
+                        <span className="font-medium text-[14px]">Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[12px] text-ai-text-tertiary">{project.stats}</span>
+                  <span className="text-[11px] text-ai-text-tertiary/70">Modified 2d ago</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        {sortedProjects.length === 0 && (
-          <div className="col-span-4 flex items-center justify-center py-16 text-[13px] text-ai-text-tertiary">No projects match your search.</div>
-        )}
-      </div>
+          ))}
+          {sortedProjects.length === 0 && (
+            <div className="col-span-full flex items-center justify-center py-16 text-[13px] text-ai-text-tertiary">No projects match your search.</div>
+          )}
+        </div>
+      ) : (
+        <div className="w-full border border-ai-border rounded-[8px] overflow-hidden animate-in fade-in duration-500">
+          <Table className="w-full text-[13px]">
+            <TableHeader>
+              <TableRow className="border-b border-ai-border h-[40px] bg-ai-surface hover:bg-ai-surface cursor-default">
+                <TableHead className="text-ai-text-secondary font-medium px-4">Name</TableHead>
+                <TableHead className="text-ai-text-secondary font-medium">Cases</TableHead>
+                <TableHead className="text-ai-text-secondary font-medium">Participants</TableHead>
+                <TableHead className="text-ai-text-secondary font-medium">Last modified</TableHead>
+                <TableHead className="text-right px-4"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedProjects.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-12 text-ai-text-tertiary">No projects match your search.</TableCell>
+                </TableRow>
+              ) : (
+                sortedProjects.map((project: any) => (
+                  <TableRow 
+                    key={project.id} 
+                    onClick={() => onProjectClick(project.keyName)}
+                    className="border-b border-ai-border hover:bg-ai-base/40 dark:hover:bg-white/[0.02] cursor-pointer group transition-colors h-[64px]"
+                  >
+                    <TableCell className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-[8px] bg-[#f3f7f9] dark:bg-[#1d1f22] flex items-center justify-center shrink-0 shadow-sm border border-black/5">
+                          <span className="text-[14px] font-bold text-ai-text-secondary">{project.title.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <span className="text-[14px] font-medium text-ai-text group-hover:text-[var(--ai-accent)] transition-colors">{project.title}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-[13px] text-ai-text-secondary">{project.stats}</TableCell>
+                    <TableCell>
+                      <div className="flex -space-x-1.5">
+                        {project.collaborators?.map((collab: any, idx: number) => (
+                          <div key={idx} className="w-[30px] h-[30px] rounded-full border-2 border-white dark:border-[#131416] bg-[#f3f4f6] dark:bg-[#282a2c] flex items-center justify-center shrink-0 relative">
+                            <span className="text-[11px] font-bold text-ai-text-secondary">{collab.initials}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-[13px] text-ai-text-tertiary">Just now</TableCell>
+                    <TableCell className="text-right px-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button onClick={(e) => e.stopPropagation()} className="p-2 hover:bg-ai-hover-1 rounded-[8px] transition-colors cursor-pointer">
+                            <MoreVertical size={16} className="text-ai-text-tertiary" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          onClick={(e) => e.stopPropagation()} 
+                          align="end" 
+                          className="w-[240px] bg-white dark:bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-2 space-y-1"
+                        >
+                          <DropdownMenuItem className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text">
+                            <ExternalLink size={18} className="text-ai-text-secondary" />
+                            <span className="font-medium text-[14px]">Open in new tab</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRenameId(project.id);
+                              setRenameValue(project.title);
+                            }}
+                          >
+                            <Edit size={18} className="text-ai-text-secondary" />
+                            <span className="font-medium text-[14px]">Rename</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="focus:bg-ai-hover-1 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-ai-text"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onShareClick();
+                            }}
+                          >
+                            <Share2 size={18} className="text-ai-text-secondary" />
+                            <span className="font-medium text-[14px]">Share</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="my-1 bg-ai-border" />
+                          <DropdownMenuItem 
+                            className="focus:bg-red-500/10 focus:text-red-500 rounded-lg p-2.5 flex items-center gap-3 cursor-pointer text-red-500 transition-colors"
+                          >
+                            <Trash2 size={18} className="text-red-500" strokeWidth={2.5} />
+                            <span className="font-medium text-[14px]">Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
@@ -2445,13 +2810,15 @@ function ProjectDetailView({
   onCaseSelect,
   onViewModel,
   onTitleChange,
+  onCommentsClick,
   onBack
 }: {
   projectTitle: string,
   cases: CaseItem[],
-  onCaseSelect: (c: any) => void,
-  onViewModel: (c: any) => void,
+  onCaseSelect: (caseData: any) => void,
+  onViewModel: (caseData: any) => void,
   onTitleChange: (newTitle: string) => void,
+  onCommentsClick: () => void,
   onBack: () => void
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -2478,14 +2845,14 @@ function ProjectDetailView({
   };
 
   return (
-    <div className="w-full flex flex-col mt-[100px] pb-16 animate-in fade-in duration-300">
+    <div className="w-full flex flex-col mt-5 pb-16 animate-in fade-in duration-300">
       <div className="w-full flex flex-col gap-8 mb-6">
         <div className="w-full flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
             onClick={onBack}
-            className="w-[36px] h-[36px] rounded-full border-ai-border hover:bg-ai-hover-1 shadow-sm shrink-0"
+            className="w-[36px] h-[36px] rounded-[8px] border-ai-border hover:bg-ai-hover-1 shrink-0"
           >
             <ArrowLeft size={16} />
           </Button>
@@ -2527,7 +2894,7 @@ function ProjectDetailView({
               variant="ghost"
               size="icon"
               onClick={() => setIsEditing(true)}
-              className="h-[28px] w-[28px] text-ai-text-tertiary hover:text-ai-text hover:bg-ai-hover-1 rounded-full self-end ml-[-4px] shrink-0"
+              className="h-[28px] w-[28px] text-ai-text-tertiary hover:text-ai-text hover:bg-ai-hover-1 rounded-[8px] self-end ml-[-4px] shrink-0"
             >
               <Edit size={16} />
             </Button>
@@ -2549,10 +2916,10 @@ function ProjectDetailView({
                   {filterBy} <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 {['All', 'Blocked', 'Pending', 'In progress', 'Completed'].map(s => (
                   <DropdownMenuItem key={s} onClick={() => setFilterBy(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                    {filterBy === s && <Check size={12} className="text-blue-500" />}
+                    {filterBy === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                     {filterBy !== s && <span className="w-3" />}
                     {s}
                   </DropdownMenuItem>
@@ -2577,7 +2944,7 @@ function ProjectDetailView({
                   Most recent <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 <DropdownMenuItem className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px]">Most recent</DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px]">Least recent</DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px]">Alphabetical (A-Z)</DropdownMenuItem>
@@ -2590,7 +2957,7 @@ function ProjectDetailView({
       <div className="border border-ai-border rounded-[8px] overflow-hidden w-full">
         <Table className="w-full text-[13px] table-fixed">
           <TableHeader>
-            <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px] bg-ai-surface cursor-default">
+            <TableRow className="border-b border-ai-border h-[40px] bg-ai-surface hover:bg-ai-surface cursor-default">
               <TableHead className="text-ai-text-secondary font-medium w-[30%] px-4">Case</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[10%] max-[1680px]:hidden">Created</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Delivery</TableHead>
@@ -2612,9 +2979,9 @@ function ProjectDetailView({
               ]}
               status="In progress"
               subStatus="Est. delivery 15/12/25"
-              statusColor="bg-gray-300 dark:bg-[#e3e3e3] shadow-none dark:shadow-[0_0_4px_rgba(227,227,227,0.5)]"
               onViewModel={onViewModel}
               onViewDetails={(c) => onCaseSelect(c)}
+              onCommentsClick={onCommentsClick}
             />
             <DataRow
               clave="ID224602"
@@ -2630,9 +2997,9 @@ function ProjectDetailView({
               status="Completed"
               subStatus="View model"
               statusColor="bg-ai-success"
-              isLink
               onViewModel={onViewModel}
               onViewDetails={(c) => onCaseSelect(c)}
+              onCommentsClick={onCommentsClick}
             />
           </TableBody>
         </Table>
@@ -2665,7 +3032,7 @@ function InvoiceDetailSidebar({
       )}
       {/* Slide-in panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-[570px] bg-white dark:bg-ai-surface border-l border-ai-border shadow-2xl z-[100] transition-transform duration-300 ease-out ${
+        className={`fixed top-0 right-0 h-full w-[570px] bg-white dark:bg-ai-surface border-l border-ai-border z-[100] transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -2674,7 +3041,7 @@ function InvoiceDetailSidebar({
             {/* Header */}
             <div className="p-6 border-b border-ai-border flex items-center justify-between sticky top-0 bg-white/80 dark:bg-ai-surface/80 backdrop-blur-md z-10 shrink-0">
               <div className="flex flex-col gap-1">
-                <span className="text-[12px] font-bold text-blue-500 uppercase tracking-widest">Invoice Details</span>
+                <span className="text-[12px] font-bold text-[var(--ai-accent)] uppercase tracking-widest">Invoice Details</span>
                 <h2 className="text-[20px] font-semibold text-ai-text">{invoice.invoiceNumber}</h2>
               </div>
               <Button
@@ -2694,7 +3061,7 @@ function InvoiceDetailSidebar({
                   <span className="text-[11px] text-ai-text-tertiary uppercase font-bold tracking-tight">Total Amount</span>
                   <span className="text-[28px] font-bold text-ai-text">€{invoice.amount.toFixed(2)}</span>
                 </div>
-                <div className={`px-4 py-1.5 rounded-full text-[12px] font-bold shadow-sm border ${invoice.status === 'Paid'
+                <div className={`px-4 py-1.5 rounded-full text-[12px] font-bold border ${invoice.status === 'Paid'
                     ? 'bg-green-500/10 text-green-600 border-green-500/20'
                     : invoice.status === 'Pending'
                       ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
@@ -2726,7 +3093,7 @@ function InvoiceDetailSidebar({
               {/* Items Table */}
               <div className="flex flex-col gap-3">
                 <span className="text-[11px] text-ai-text-tertiary uppercase font-bold tracking-tight">Service Details</span>
-                <div className="border border-ai-border rounded-[8px] overflow-hidden shadow-sm">
+                <div className="border border-ai-border rounded-[8px] overflow-hidden">
                   <div className="bg-ai-base/30 px-4 py-3 border-b border-ai-border flex justify-between text-[12px] font-bold text-ai-text-secondary">
                     <span>Description</span>
                     <span>Price</span>
@@ -2761,7 +3128,7 @@ function InvoiceDetailSidebar({
             </div>
 
             <div className="mt-auto p-6 border-t border-ai-border bg-ai-base/30 flex flex-col gap-3 shrink-0">
-              <Button className="w-full bg-[#0782f5] hover:bg-[#0782f5]/90 text-white font-bold h-[48px] rounded-[8px] flex items-center gap-2 shadow-lg shadow-blue-500/20">
+              <Button className="w-full bg-[var(--ai-accent)] hover:bg-[var(--ai-accent)]/90 text-white font-bold h-[48px] rounded-[8px] flex items-center gap-2">
                 <FileText size={18} />
                 Download PDF Invoice
               </Button>
@@ -2789,7 +3156,7 @@ function ArticleView({ article, onBack }: { article: any, onBack: () => void }) 
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4">
-            <span className="text-[14px] font-bold text-[#0782f5] uppercase tracking-widest">{article.category}</span>
+            <span className="text-[14px] font-bold text-[var(--ai-accent)] uppercase tracking-widest">{article.category}</span>
             <h1 className="text-[42px] font-bold text-ai-text leading-tight">{article.title}</h1>
             <div className="flex items-center gap-4 text-ai-text-tertiary text-[14px]">
               <div className="flex items-center gap-2">
@@ -2828,7 +3195,7 @@ function ArticleView({ article, onBack }: { article: any, onBack: () => void }) 
                 </Button>
               </div>
             </div>
-            <Button onClick={onBack} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 h-[44px]">
+            <Button onClick={onBack} className="bg-[var(--ai-accent)] hover:bg-[var(--ai-accent-hover)] text-white rounded-xl px-8 h-[44px]">
               Back to Dashboard
             </Button>
           </div>
@@ -2902,10 +3269,10 @@ function BillingView({
                   {filterBy} <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 {['All', 'Paid', 'Pending', 'Overdue'].map(s => (
                   <DropdownMenuItem key={s} onClick={() => setFilterBy(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                    {filterBy === s && <Check size={12} className="text-blue-500" />}
+                    {filterBy === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                     {filterBy !== s && <span className="w-3" />}
                     {s}
                   </DropdownMenuItem>
@@ -2920,7 +3287,7 @@ function BillingView({
                   <span>{dateRange?.from ? (dateRange.to ? <>{format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}</> : format(dateRange.from, "LLL dd, y")) : <span>Period</span>}</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-ai-border bg-ai-surface shadow-md rounded-[8px]" align="end">
+              <PopoverContent className="w-auto p-0 border-ai-border bg-ai-surface rounded-[8px]" align="end">
                 <Calendar
                   initialFocus
                   mode="range"
@@ -2940,10 +3307,10 @@ function BillingView({
                   {sortBy} <ChevronDown size={14} className="text-ai-text-tertiary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
+              <DropdownMenuContent align="end" className="w-[200px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px]">
                 {['Most recent', 'Least recent', 'A-Z', 'Z-A'].map(s => (
                   <DropdownMenuItem key={s} onClick={() => setSortBy(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                    {sortBy === s && <Check size={12} className="text-blue-500" />}
+                    {sortBy === s && <Check size={12} className="text-[var(--ai-accent)]" />}
                     {sortBy !== s && <span className="w-3" />}
                     {s === 'A-Z' ? 'Alphabetical (A-Z)' : s === 'Z-A' ? 'Alphabetical (Z-A)' : s}
                   </DropdownMenuItem>
@@ -2954,10 +3321,10 @@ function BillingView({
         </div>
       </div>
 
-      <div className="border border-ai-border rounded-[8px] overflow-hidden w-full bg-white dark:bg-ai-surface/50 shadow-sm">
+      <div className="border border-ai-border rounded-[8px] overflow-hidden w-full">
         <Table className="w-full text-[13px] table-fixed">
           <TableHeader>
-            <TableRow className="border-b border-ai-border hover:bg-transparent h-[40px] bg-ai-surface cursor-default">
+            <TableRow className="border-b border-ai-border h-[40px] bg-ai-surface hover:bg-ai-surface cursor-default">
               <TableHead className="text-ai-text-secondary font-medium w-[30%] px-6">Case</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Inv. Number</TableHead>
               <TableHead className="text-ai-text-secondary font-medium w-[15%]">Date</TableHead>
@@ -3070,21 +3437,21 @@ function BlogView({ articles, onBack, onSelectArticle }: { articles: any[], onBa
       {/* FEATURED ARTICLE */}
       {featuredArticle && (
         <div 
-          className="relative w-full h-[400px] rounded-[24px] overflow-hidden group cursor-pointer border border-ai-border shadow-xl bg-ai-surface"
+          className="relative w-full h-[400px] rounded-[8px] overflow-hidden group cursor-pointer border border-ai-border bg-ai-surface"
           onClick={() => onSelectArticle(featuredArticle)}
         >
           <img src={featuredArticle.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Featured" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-10 flex flex-col gap-3 max-w-2xl">
             <div className="flex gap-2">
-              <span className="bg-blue-600 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">{featuredArticle.category}</span>
+              <span className="bg-[var(--ai-accent)] text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">{featuredArticle.category}</span>
               <span className="bg-white/10 backdrop-blur-md text-white/90 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-white/10">{featuredArticle.date}</span>
             </div>
-            <h2 className="text-[32px] font-bold text-white leading-tight group-hover:text-blue-400 transition-colors uppercase tracking-tight">{featuredArticle.title}</h2>
+            <h2 className="text-[32px] font-bold text-white leading-tight group-hover:text-[var(--ai-accent-hover)] transition-colors uppercase tracking-tight">{featuredArticle.title}</h2>
             <p className="text-white/80 text-[16px] leading-relaxed line-clamp-2">Latest clinical advancements and product updates from the Cella Studio core engineering team.</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="text-white font-bold text-[14px]">Read full article</span>
-              <ArrowRight size={18} className="text-blue-400 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={18} className="text-[var(--ai-accent-hover)] group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </div>
@@ -3105,11 +3472,11 @@ function BlogView({ articles, onBack, onSelectArticle }: { articles: any[], onBa
               </div>
               <div className="flex flex-col justify-center gap-3">
                 <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-ai-text-tertiary">
-                  <span className="text-blue-500">{article.category}</span>
+                  <span className="text-[var(--ai-accent)]">{article.category}</span>
                   <div className="w-1 h-1 rounded-full bg-ai-text-tertiary"></div>
                   <span>{article.date}</span>
                 </div>
-                <h4 className="text-[18px] font-bold text-ai-text group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{article.title}</h4>
+                <h4 className="text-[18px] font-bold text-ai-text group-hover:text-[var(--ai-accent)] dark:group-hover:text-[var(--ai-accent-hover)] transition-colors">{article.title}</h4>
                 <p className="text-ai-text-secondary text-[14px] leading-relaxed line-clamp-2 max-w-2xl">Discover how our latest updates are transforming clinical workflows across the globe.</p>
               </div>
               <div className="ml-auto flex items-center pr-4">
@@ -3133,7 +3500,7 @@ const DOCS_SECTIONS = [
   {
     title: 'Getting Started',
     icon: '🚀',
-    color: 'text-blue-400',
+    color: 'text-[var(--ai-accent-hover)]',
     bg: 'bg-blue-500/10',
     articles: [
       { title: 'What is Cella Studio?', time: '3 min', tag: 'Intro' },
@@ -3201,10 +3568,10 @@ const QUICKSTART = [
 ];
 
 // -------------------------------------------------------------------------------- //
-// SETTINGS VIEW
+// SETTINGS MODAL
 // -------------------------------------------------------------------------------- //
 
-function SettingsView({ onBack }: { onBack: () => void }) {
+function SettingsModal({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'logistics'>('profile');
   const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
@@ -3215,276 +3582,240 @@ function SettingsView({ onBack }: { onBack: () => void }) {
     phone: "+34 968 123 456"
   });
 
-  return (
-    <div className="w-full h-full animate-in fade-in duration-500 overflow-y-auto">
-      <div className="max-w-4xl mx-auto pt-10 px-8 flex flex-col gap-10 pb-20">
-        
-        {/* HEADER */}
-        <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-6">
-            <Button variant="ghost" onClick={onBack} className="p-0 h-auto w-fit hover:bg-transparent text-ai-text-secondary hover:text-ai-text flex items-center gap-2">
-              <ArrowLeft size={16} />
-              <span className="text-[14px]">Back to Dashboard</span>
-            </Button>
-            <div className="flex flex-col gap-1">
-              <h1 className="text-[32px] font-bold text-ai-text">Account Settings</h1>
-              <p className="text-[15px] text-ai-text-secondary">Manage your professional profile, preferences, and security settings.</p>
-            </div>
-          </div>
+  const sidebarItems = [
+    { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+    { id: 'security', label: 'Security', icon: <Lock size={18} /> },
+    { id: 'logistics', label: 'Shipping', icon: <Truck size={18} /> },
+  ] as const;
 
-          {/* TABS NAVIGATION */}
-          <div className="flex items-center gap-1 border-b border-ai-border pb-px">
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`px-4 py-3 text-[14px] font-bold transition-all border-b-2 hover:text-ai-text ${activeTab === 'profile' ? 'border-[#1a73e8] text-[#1a73e8]' : 'border-transparent text-ai-text-tertiary hover:bg-ai-hover-1/50'}`}
-            >
-              My Profile
-            </button>
-            <button 
-              onClick={() => setActiveTab('security')}
-              className={`px-4 py-3 text-[14px] font-bold transition-all border-b-2 hover:text-ai-text ${activeTab === 'security' ? 'border-[#1a73e8] text-[#1a73e8]' : 'border-transparent text-ai-text-tertiary hover:bg-ai-hover-1/50'}`}
-            >
-              Security
-            </button>
-            <button 
-              onClick={() => setActiveTab('logistics')}
-              className={`px-4 py-3 text-[14px] font-bold transition-all border-b-2 hover:text-ai-text ${activeTab === 'logistics' ? 'border-[#1a73e8] text-[#1a73e8]' : 'border-transparent text-ai-text-tertiary hover:bg-ai-hover-1/50'}`}
-            >
-              Logistics & Shipping
-            </button>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text max-w-[900px] h-[750px] p-0 rounded-[8px] overflow-hidden flex flex-row gap-0 [&>button]:top-6 [&>button]:right-6 [&>button]:opacity-50 hover:[&>button]:opacity-100 transition-all">
+        {/* MODAL SIDEBAR */}
+        <div className="w-[240px] border-r border-ai-border flex flex-col p-6 gap-6 shrink-0 h-full">
+          <div className="flex flex-col gap-1.5 px-2">
+            <h2 className="text-[20px] font-bold text-ai-text tracking-tight">Settings</h2>
+            <p className="text-[12px] text-ai-text-tertiary font-medium">Manage your account and preferences.</p>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] font-medium transition-all group ${
+                  activeTab === item.id 
+                    ? 'bg-[var(--ai-accent)]/10 text-[var(--ai-accent)]' 
+                    : 'text-ai-text-secondary hover:bg-ai-hover-1 hover:text-ai-text'
+                }`}
+              >
+                <div className={activeTab === item.id ? 'text-[var(--ai-accent)]' : 'text-ai-text-tertiary group-hover:text-ai-text'}>
+                  {item.icon}
+                </div>
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {activeTab === 'profile' && (
-          <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* 1. MY PROFILE CARD */}
-            <section className="bg-white dark:bg-[#131416] border border-ai-border rounded-[8px] overflow-hidden">
-              <div className="px-8 py-6 border-b border-ai-border bg-ai-base/30">
-                <h2 className="text-[18px] font-bold text-ai-text">My Profile</h2>
-              </div>
-              <div className="p-8 flex flex-col gap-10">
-                <div className="flex flex-col md:flex-row items-center gap-8">
-                  <div className="relative group">
-                    <Avatar className="w-24 h-24 border-4 border-ai-border shadow-md">
-                      <AvatarFallback className="bg-blue-600 text-white font-bold text-[28px]">AS</AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <div className="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
-                    <h3 className="text-[24px] font-bold text-ai-text">Dr. Prueba Alex Salmerón</h3>
-                    <div className="flex items-center gap-3">
-                      <span className="bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider">Doctor Profile</span>
+        {/* MODAL CONTENT */}
+        <div className="flex-1 flex flex-col h-full min-w-0 bg-transparent">
+          {/* DYNAMIC HEADER */}
+          <div className="px-12 py-8 border-b border-ai-border flex flex-col gap-1 shrink-0 relative">
+            <h3 className="text-[20px] font-bold text-ai-text tracking-tight">
+              {activeTab === 'profile' && "Personal Profile"}
+              {activeTab === 'security' && "Security"}
+              {activeTab === 'logistics' && "Shipping"}
+            </h3>
+            <p className="text-[13px] text-ai-text-tertiary font-medium">
+              {activeTab === 'profile' && "Manage your clinical identity and professional contact information."}
+              {activeTab === 'security' && "Manage your medical account security and authentication methods."}
+              {activeTab === 'logistics' && "Configure your primary hospital addresses for anatomical model and prototype deliveries."}
+            </p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-12 pt-8">
+            {activeTab === 'profile' && (
+              <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div className="flex items-center gap-6 group">
+                  <Avatar className="w-16 h-16 border border-ai-border">
+                    <AvatarFallback className="bg-[var(--ai-accent)] text-white font-bold text-[24px]">AS</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-0.5">
+                    <h4 className="text-[18px] font-bold text-ai-text tracking-tight">Dr. Prueba Alex Salmerón</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[var(--ai-accent)] text-[12px] font-bold">Chief Surgeon</span>
+                      <span className="w-1 h-1 rounded-full bg-ai-border" />
+                      <span className="text-[13px] text-ai-text-tertiary font-medium">Cella Medical Solutions</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 pt-4">
-                  <ProfileItem label="Medical Specialty" value="Cirugía general - Hepatobiliopancreática" />
-                  <ProfileItem label="Primary Hospital" value="Cella Medical Solutions" />
-                  <ProfileItem label="Platform Access Since" value="09-07-2025" />
-                  <ProfileItem label="Last Active Session" value="10-04-2026 10:04:10" />
-                </div>
-              </div>
-            </section>
+                <div className="flex flex-col gap-8">
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                    <ProfileItem label="Medical specialty" value="Cirugía general - Hepatobiliopancreática" />
+                    <ProfileItem label="Primary hospital" value="Cella Medical Solutions" />
+                  </div>
 
-            {/* 2. PERSONAL DETAILS CARD */}
-            <section className="bg-white dark:bg-[#131416] border border-ai-border rounded-[8px] overflow-hidden">
-              <div className="px-8 py-6 border-b border-ai-border bg-ai-base/30">
-                <h2 className="text-[18px] font-bold text-ai-text">Personal Details</h2>
-              </div>
-              <div className="p-8 flex flex-col gap-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <SettingsInput label="Primary Email" defaultValue="alejandrosalmeron+1@cellams.com" icon={<Mail size={16} />} />
-                  <SettingsInput label="Alternative Email" placeholder="Optional contact email" icon={<Mail size={16} />} />
-                  <SettingsInput label="Phone Number" placeholder="+34 600 000 000" icon={<MessageSquare size={16} />} />
-                  <SettingsInput label="Colegiado Number" defaultValue="1" icon={<Sparkles size={16} />} />
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Interface Language</label>
-                  <div className="relative w-full max-w-[320px]">
-                    <select className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px] text-ai-text appearance-none cursor-pointer">
-                      <option value="es">🇪🇸 Español (ES)</option>
-                      <option value="en">🇬🇧 English (EN)</option>
-                      <option value="fr">🇫🇷 Français (FR)</option>
-                    </select>
-                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-ai-text-secondary pointer-events-none" />
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                    <SettingsInput label="Primary email" defaultValue="alejandrosalmeron+1@cellams.com" icon={<Mail size={16} />} />
+                    <SettingsInput label="Phone number" placeholder="+34 600 000 000" icon={<MessageSquare size={16} />} />
                   </div>
                 </div>
               </div>
-            </section>
-          </div>
-        )}
+            )}
 
-        {activeTab === 'security' && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* 4. SECURITY & AUTHENTICATION CARD */}
-            <section className="bg-white dark:bg-[#131416] border border-ai-border rounded-[8px] overflow-hidden shadow-sm">
-              <div className="px-8 py-6 border-b border-ai-border bg-ai-base/30">
-                <h2 className="text-[18px] font-bold text-ai-text">Security & Privacy</h2>
-              </div>
-              <div className="p-8 flex flex-col gap-6">
+            {activeTab === 'security' && (
+              <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
                 <div 
                   onClick={() => setIsPasswordOpen(true)}
-                  className="flex items-center gap-5 p-6 rounded-2xl bg-ai-base/10 border border-ai-border hover:border-blue-500 transition-all cursor-pointer group"
+                  className="flex items-center gap-5 cursor-pointer group"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary group-hover:bg-[#1a73e8] group-hover:text-white group-hover:border-[#1a73e8] transition-all shadow-sm shrink-0">
-                    <Lock size={22} />
+                  <div className="w-10 h-10 rounded-[8px] bg-ai-base border border-ai-border flex items-center justify-center text-ai-text-tertiary group-hover:text-[var(--ai-accent)] group-hover:border-[var(--ai-accent)]/30 transition-all shrink-0">
+                    <Lock size={18} />
                   </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[16px] font-bold text-ai-text">Change Password</span>
-                    <span className="text-[13px] text-ai-text-tertiary font-medium">Strengthen your account security with a new password.</span>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-bold text-ai-text tracking-tight">Update password</span>
+                    <span className="text-[13px] text-ai-text-tertiary font-medium">Keep your surgical cases secure. Last changed 3 months ago.</span>
                   </div>
-                  <ChevronRight size={20} className="text-ai-text-tertiary group-hover:text-ai-text group-hover:translate-x-1 transition-all ml-auto" />
+                  <ChevronRight size={18} className="ml-auto text-ai-text-tertiary group-hover:text-ai-text group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </section>
-          </div>
-        )}
+            )}
 
-        {activeTab === 'logistics' && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {/* 3. LOGISTICS & SHIPPING CARD */}
-            <section className="bg-white dark:bg-[#131416] border border-ai-border rounded-[8px] overflow-hidden shadow-sm">
-              <div className="px-8 py-6 border-b border-ai-border bg-ai-base/30">
-                <div className="flex flex-col gap-0.5">
-                  <h2 className="text-[18px] font-bold text-ai-text">Logistics & Shipping</h2>
+            {activeTab === 'logistics' && (
+              <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-start gap-5 group">
+                    <div className="w-10 h-10 rounded-[8px] bg-ai-base border border-ai-border flex items-center justify-center text-ai-text-tertiary shrink-0 group-hover:text-[var(--ai-accent)] group-hover:border-[var(--ai-accent)]/30 transition-all">
+                      <MapPin size={20} />
+                    </div>
+                    <div className="flex flex-col gap-0.5 flex-1">
+                      <p className="text-[15px] text-ai-text font-bold leading-tight tracking-tight mb-1">Primary hospital address</p>
+                      <p className="text-[14px] text-ai-text-secondary leading-relaxed font-medium">
+                        {address.street}<br />
+                        {address.zip} {address.city}<br />
+                        <span className="text-[var(--ai-accent)] text-[12px] font-bold mt-1.5 inline-block">{address.phone}</span>
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setIsLogisticsOpen(true)}
+                      className="h-9 w-9 rounded-[8px] text-ai-text-tertiary hover:text-[var(--ai-accent)] transition-all"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="p-8 flex flex-col gap-6">
-                <div className="flex items-start gap-4 p-6 rounded-2xl bg-ai-base/10 border border-ai-border group transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-ai-surface border border-ai-border flex items-center justify-center text-ai-text-secondary shrink-0">
-                    <MapPin size={20} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[13px] font-bold text-ai-text-tertiary uppercase tracking-wider">Default Delivery Address</span>
-                    <p className="text-[15px] text-ai-text font-medium leading-relaxed">
-                      {address.street}<br />
-                      {address.zip} {address.city}<br />
-                      <span className="text-ai-text-tertiary text-[13px] mt-1 block">{address.phone}</span>
-                    </p>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setIsLogisticsOpen(true)}
-                    className="h-10 w-10 rounded-full border border-ai-border hover:bg-ai-hover-1 text-ai-text-tertiary transition-all ml-auto"
-                  >
-                    <Edit size={16} />
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-2 p-4 bg-blue-500/5 rounded-xl border border-blue-500/10">
-                  <Info size={16} className="text-blue-500 shrink-0" />
-                  <p className="text-[12px] text-ai-text-tertiary italic font-medium">This address will be used as the default destination for all your surgical prototypes.</p>
-                </div>
-              </div>
-            </section>
+            )}
           </div>
-        )}
 
-        {/* FINAL SAVE ACTIONS - Non sticky as requested */}
-        <div className="flex items-center justify-end gap-5 pt-10 border-t border-ai-border mt-4 pb-10">
-          <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 text-white h-[44px] px-10 rounded-full font-bold shadow-none active:scale-95 transition-all text-[14px]">Save All Settings</Button>
+          {/* MODAL FOOTER */}
+          <div className="p-6 bg-ai-base/30 border-t border-ai-border flex justify-end gap-3 shrink-0">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} className="h-[40px] px-6 rounded-[8px] font-medium border border-ai-border transition-all active:scale-95">Cancel</Button>
+            <Button onClick={() => onOpenChange(false)} className="bg-[#1a73e8] hover:bg-[#1a73e8]/90 text-white h-[40px] px-8 rounded-[8px] font-bold active:scale-95 transition-all">Save Changes</Button>
+          </div>
         </div>
 
-        {/* MODALS */}
+        {/* SUB-MODALS */}
         <Dialog open={isLogisticsOpen} onOpenChange={setIsLogisticsOpen}>
-          <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[480px] p-0 rounded-[8px] overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-ai-border flex flex-col gap-1">
-              <DialogTitle className="text-[18px] font-bold">Edit Shipping Address</DialogTitle>
-              <p className="text-[13px] text-ai-text-tertiary">Provide a physical address for anatomical model deliveries.</p>
+          <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[500px] p-0 rounded-[8px] overflow-hidden">
+            <div className="p-8 border-b border-ai-border flex flex-col gap-1">
+              <DialogTitle className="text-[22px] font-bold tracking-tight">Update Shipping Address</DialogTitle>
+              <p className="text-[14px] text-ai-text-tertiary">Set your primary clinical destination for surgical prototypes.</p>
             </div>
-            <div className="p-6 flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
+            <div className="p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2.5">
                 <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Street Address</label>
                 <input 
-                  className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]"
-                  defaultValue={address.street}
+                  className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]" 
+                  defaultValue={address.street} 
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2.5">
                   <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">City</label>
                   <input 
-                    className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]"
+                    className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]"
                     defaultValue={address.city}
                   />
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2.5">
                   <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Zip Code</label>
                   <input 
-                    className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]"
+                    className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]"
                     defaultValue={address.zip}
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Contact Phone</label>
                 <input 
-                  className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]"
+                  className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]"
                   defaultValue={address.phone}
                 />
               </div>
             </div>
-            <div className="p-6 bg-ai-base/30 border-t border-ai-border flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setIsLogisticsOpen(false)} className="h-[40px] px-6 rounded-full font-medium border border-ai-border">Cancel</Button>
-              <Button onClick={() => setIsLogisticsOpen(false)} className="bg-[#1a73e8] hover:bg-[#155ebd] text-white h-[40px] px-8 rounded-full font-medium shadow-none">Update Address</Button>
+            <div className="p-8 bg-ai-base/30 border-t border-ai-border flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setIsLogisticsOpen(false)} className="h-[44px] px-8 rounded-[8px] font-bold border border-ai-border transition-all hover:bg-white dark:hover:bg-ai-surface">Cancel</Button>
+              <Button onClick={() => setIsLogisticsOpen(false)} className="bg-[#1a73e8] hover:bg-[#1a73e8]/90 text-white h-[44px] px-10 rounded-[8px] font-bold transition-all active:scale-95">Update Address</Button>
             </div>
           </DialogContent>
         </Dialog>
 
         <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-          <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[440px] p-0 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-ai-border flex flex-col gap-1">
-              <DialogTitle className="text-[18px] font-bold">Update Password</DialogTitle>
-              <p className="text-[13px] text-ai-text-tertiary">Ensure your account is using a secure, long password.</p>
+          <DialogContent className="bg-white dark:bg-ai-surface border-ai-border text-ai-text sm:max-w-[460px] p-0 rounded-[8px] overflow-hidden">
+            <div className="p-8 border-b border-ai-border flex flex-col gap-1">
+              <DialogTitle className="text-[20px] font-bold tracking-tight">Update Password</DialogTitle>
+              <p className="text-[14px] text-ai-text-tertiary">Ensure your account is using a secure, long password.</p>
             </div>
-            <div className="p-6 flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
+            <div className="p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2.5">
                 <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Current Password</label>
-                <input type="password" placeholder="••••••••" className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]" />
+                <input type="password" placeholder="••••••••" className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]" />
               </div>
-              <div className="h-px bg-ai-border w-full my-1" />
-              <div className="flex flex-col gap-2">
+              <div className="h-px bg-ai-border/60 w-full my-2" />
+              <div className="flex flex-col gap-2.5">
                 <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">New Password</label>
-                <input type="password" placeholder="Enter new password" className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]" />
+                <input type="password" placeholder="Enter new password" className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]" />
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2.5">
                 <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">Confirm New Password</label>
-                <input type="password" placeholder="Repeat new password" className="w-full h-[48px] px-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[14px]" />
+                <input type="password" placeholder="Repeat new password" className="w-full h-[52px] px-4 rounded-[8px] border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-[var(--ai-accent)]/20 focus:border-[var(--ai-accent)] transition-all text-[15px]" />
               </div>
             </div>
-            <div className="p-6 bg-ai-base/30 border-t border-ai-border flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setIsPasswordOpen(false)} className="h-[40px] px-6 rounded-full font-medium border border-ai-border">Cancel</Button>
-              <Button onClick={() => setIsPasswordOpen(false)} className="bg-[#1a73e8] hover:bg-[#155ebd] text-white h-[40px] px-8 rounded-full font-medium shadow-none">Change Password</Button>
+            <div className="p-8 bg-ai-base/30 border-t border-ai-border flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setIsPasswordOpen(false)} className="h-[44px] px-8 rounded-[8px] font-bold border border-ai-border transition-all hover:bg-white dark:hover:bg-ai-surface">Cancel</Button>
+              <Button onClick={() => setIsPasswordOpen(false)} className="bg-[#1a73e8] hover:bg-[#1a73e8]/90 text-white h-[44px] px-10 rounded-[8px] font-bold transition-all active:scale-95">Change Password</Button>
             </div>
           </DialogContent>
         </Dialog>
-
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 function ProfileItem({ label, value }: { label: string, value: string }) {
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">{label}</span>
-      <span className="text-[16px] font-medium text-ai-text">{value}</span>
+    <div className="flex flex-col gap-1.5 py-1">
+      <span className="text-[13px] font-medium text-ai-text-tertiary">{label}</span>
+      <span className="text-[15px] font-bold text-ai-text tracking-tight">{value}</span>
     </div>
   );
 }
 
 function SettingsInput({ label, defaultValue, placeholder, icon }: { label: string, defaultValue?: string, placeholder?: string, icon: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-3">
-      <label className="text-[12px] font-bold text-ai-text-tertiary uppercase tracking-widest">{label}</label>
-      <div className="relative group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ai-text-tertiary group-focus-within:text-blue-500 transition-colors">
+    <div className="flex flex-col gap-2 group">
+      <label className="text-[13px] font-medium text-ai-text-tertiary pl-0.5 transition-colors group-focus-within:text-[var(--ai-accent)]">{label}</label>
+      <div className="relative">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-ai-text-tertiary group-focus-within:text-[var(--ai-accent)] transition-colors">
           {icon}
         </div>
         <input 
-          className="w-full h-[48px] pl-11 pr-4 rounded-xl border border-ai-border bg-ai-base outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-[15px] text-ai-text"
+          className="w-full h-[48px] pl-11 pr-4 rounded-[8px] border border-ai-border bg-ai-base/20 outline-none focus:ring-1 focus:ring-[var(--ai-accent)] focus:border-[var(--ai-accent)] transition-all text-[14px] font-medium text-ai-text placeholder:text-ai-text-tertiary"
           defaultValue={defaultValue}
           placeholder={placeholder}
         />
@@ -3560,7 +3891,7 @@ function DocsView({ activeSection, setActiveSection }: { activeSection: string; 
                   <button
                     key={s.title}
                     onClick={() => { setActiveSection(s.title); setActiveArticle(null); }}
-                    className="text-[12px] px-3 py-1.5 rounded-[7px] border border-ai-border bg-ai-surface hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer"
+                    className="text-[12px] px-3 py-1.5 rounded-[8px] border border-ai-border bg-ai-surface hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer"
                   >
                     {s.title}
                   </button>
@@ -3616,8 +3947,8 @@ function DocsView({ activeSection, setActiveSection }: { activeSection: string; 
             <div className="mt-10 pt-6 border-t border-ai-border flex items-center justify-between">
               <p className="text-[12px] text-ai-text-tertiary">Was this helpful?</p>
               <div className="flex gap-2">
-                <button className="text-[12px] px-3 py-1.5 rounded-[7px] border border-ai-border hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer">Yes</button>
-                <button className="text-[12px] px-3 py-1.5 rounded-[7px] border border-ai-border hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer">No</button>
+                <button className="text-[12px] px-3 py-1.5 rounded-[8px] border border-ai-border hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer">Yes</button>
+                <button className="text-[12px] px-3 py-1.5 rounded-[8px] border border-ai-border hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer">No</button>
               </div>
             </div>
           </div>
@@ -3675,55 +4006,185 @@ function DocsView({ activeSection, setActiveSection }: { activeSection: string; 
 // Navigates down to subcategories: All Cases -> Category -> Subcategory
 // -------------------------------------------------------------------------------- //
 
-function DiscoverView() {
+function DiscoverView({ onViewModel }: { onViewModel?: (caseData: any) => void }) {
   const [level, setLevel] = useState<1 | 2 | 3>(1);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("Most popular");
-  const [filterType, setFilterType] = useState("All");
+  const [sortBy, setSortBy] = useState("Recommended");
+   const [filterType, setFilterType] = useState("Colorectal");
+
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   const specialtiesScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollSpecialtiesLeft = () => {
     if (specialtiesScrollRef.current) {
-      specialtiesScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+      specialtiesScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
     }
   };
 
   const scrollSpecialtiesRight = () => {
     if (specialtiesScrollRef.current) {
-      specialtiesScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+      specialtiesScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
   };
 
   const featuredScrollItems = [
-    { title: "Colorectal Surgery", category: "Colorectal", letter: "C", gradient: "from-[#d1d5db] to-[#9ca3af]", textColors: "text-gray-900" },
-    { title: "General Surgery", category: "General Surgery", letter: "G", gradient: "from-[#bef264] to-[#84cc16]", textColors: "text-[#4d7c0f]" },
-    { title: "Cardiac Surgery", category: "Cardiac Surgery", letter: "C", gradient: "from-[#93c5fd] to-[#3b82f6]", textColors: "text-blue-900" },
-    { title: "Urology", category: "Urology", letter: "U", gradient: "from-[#86efac] to-[#22c55e]", textColors: "text-green-900" },
-    { title: "Hepatobiliary Surgery", category: "Hepatobiliary", letter: "H", gradient: "from-[#fcd34d] to-[#f59e0b]", textColors: "text-amber-900" },
-    { title: "Thoracic Surgery", category: "Thoracic Surgery", letter: "T", gradient: "from-[#d8b4fe] to-[#a855f7]", textColors: "text-purple-900" },
+    { title: "Colorectal", category: "Colorectal", description: "Advanced guides", letter: "C", gradient: "from-[#FFB7B7] to-[#FF7B7B]", glow: "shadow-red-500/20" },
+    { title: "General", category: "General Surgery", description: "Standard models", letter: "G", gradient: "from-[#BEF264] to-[#84CC16]", glow: "shadow-lime-500/20" },
+    { title: "Cardiac", category: "Cardiac Surgery", description: "Valve & tissue", letter: "C", gradient: "from-[#93C5FD] to-[#3B82F6]", glow: "shadow-blue-500/20" },
+    { title: "Urology", category: "Urology", description: "Renal & Pelvic", letter: "U", gradient: "from-[#86EFAC] to-[#22C55E]", glow: "shadow-green-500/20" },
+    { title: "Hepatobiliary", category: "Hepatobiliary", description: "Liver expert", letter: "H", gradient: "from-[#FCD34D] to-[#F59E0B]", glow: "shadow-amber-500/20" },
+    { title: "Thoracic", category: "Thoracic Surgery", description: "Pulmonary path", letter: "T", gradient: "from-[#D8B4FE] to-[#A855F7]", glow: "shadow-purple-500/20" },
   ];
 
   const subcategories = [
-    { name: "Hepatobiliar", count: 6 },
-    { name: "Colorrectal", count: 12 },
-    { name: "Esofagogástrica", count: 8 },
-    { name: "Páncreas", count: 4 },
+    { name: "Hepatobiliary", count: 6 },
+    { name: "Colorectal", count: 12 },
+    { name: "Esophagogastric", count: 8 },
+    { name: "Pancreatics", count: 4 },
   ];
 
-  const caseCardsLevel1 = [
-    { isForMe: true, category: "Esofagogástrica", title: "Unión esofagogástrica", image: "/images/models/intestines_3d_1772712054852.png" },
-    { isForMe: false, category: "General", title: "Hepatobiliopancreática", image: "/images/models/liver_3d_1772712040731.png" },
-    { isForMe: false, category: "Renal", title: "Carcinoma de células renales", image: "/images/models/kidneys_3d_1772712147028.png" },
-    { isForMe: true, category: "General", title: "Hepatobiliopancreática", image: "/images/models/liver_3d_1772712040731.png" },
-    { isForMe: false, category: "Tórax", title: "Adenoma bronquial", image: "/images/models/lungs_3d_1772712131331.png" },
-    { isForMe: false, category: "Cabeza y cuello", title: "Carcinomas orofaríngeos", image: "/images/models/brain_3d_1772712116509.png" },
-    { isForMe: false, category: "Esofagogástrica", title: "Vólvulo gástrico", image: "/images/models/intestines_3d_1772712054852.png" },
-    { isForMe: false, category: "General", title: "Acalasia", image: "/images/models/liver_3d_1772712040731.png" },
+  const productIndications = [
+    {
+      label: "Primary Malignant Tumors",
+      items: ["Hepatocellular Carcinoma (HCC)", "Intrahepatic Cholangiocarcinoma", "Hepatic Angiosarcoma"]
+    },
+    {
+      label: "Metastatic Malignant Tumors",
+      items: []
+    },
+    {
+      label: "Benign or Premalignant Lesions",
+      items: []
+    },
+    {
+      label: "Cystic and Congenital Liver Diseases",
+      items: []
+    },
+    {
+      label: "Vascular Pathologies",
+      items: []
+    }
   ];
+
+  const [caseCardsLevel1, setCaseCardsLevel1] = useState([
+    { 
+      isForMe: true, 
+      category: "Esophagogastric", 
+      title: "Esophagogastric Junction", 
+      image: "/images/models/intestines_3d_1772712054852.png",
+      layers: [
+        { url: "/models/higado.stl", color: "#ffcc99", opacity: 0.3 },
+        { url: "/models/vasculatura_portal.stl", color: "#3b82f6" },
+        { url: "/models/tumor_arterial.stl", color: "#ef4444" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 1.5 mm", phase: "Arterial/Venous", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "General Surgery", 
+      title: "Hepatobiliopancreatic", 
+      image: "/images/models/liver_3d_1772712040731.png",
+      layers: [
+        { url: "/models/higado.stl", color: "#ffcc99", opacity: 0.5 },
+        { url: "/models/vasculatura_portal.stl", color: "#3b82f6" },
+        { url: "/models/vasculatura_venosa.stl", color: "#1d4ed8" },
+        { url: "/models/tumor_arterial.stl", color: "#ef4444" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 1.0 mm", phase: "Multiphase", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "Renal", 
+      title: "Renal Cell Carcinoma", 
+      image: "/images/models/kidneys_3d_1772712147028.png",
+      layers: [
+        { url: "/models/rinones.stl", color: "#ffccd1", opacity: 0.5 },
+        { url: "/models/ureteres.stl", color: "#fbbf24" },
+        { url: "/models/tumor_arterial.stl", color: "#ef4444" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT/MRI", format: "DICOM", thickness: "< 2.0 mm", phase: "Nephrographic", contrast: "Yes" }
+    },
+    { 
+      isForMe: true, 
+      category: "General Surgery", 
+      title: "Hepatobiliopancreatic (Standard)", 
+      image: "/images/models/liver_3d_1772712040731.png",
+      layers: [
+        { url: "/models/higado.stl", color: "#ffcc99", opacity: 0.5 },
+        { url: "/models/vasculatura_portal.stl", color: "#3b82f6" },
+        { url: "/models/tumor_arterial.stl", color: "#ef4444" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 1.0 mm", phase: "Multiphase", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "Thoracic", 
+      title: "Bronchial Adenoma", 
+      image: "/images/models/lungs_3d_1772712131331.png",
+      layers: [
+        { url: "/models/costillas.stl", color: "#e2e8f0", opacity: 0.2 },
+        { url: "/models/vasculatura_arterial.stl", color: "#ef4444" },
+        { url: "/models/tumor_arterial.stl", color: "#fbbf24" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 1.25 mm", phase: "Single phase", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "Head & Neck", 
+      title: "Oropharyngeal Carcinomas", 
+      image: "/images/models/brain_3d_1772712116509.png",
+      layers: [
+        { url: "/models/vasculatura_arterial.stl", color: "#ef4444" },
+        { url: "/models/tumor_arterial.stl", color: "#fbbf24" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "MRI", format: "DICOM", thickness: "< 1.0 mm", phase: "T1/T2 Gado", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "Esophagogastric", 
+      title: "Gastric Volvulus", 
+      image: "/images/models/intestines_3d_1772712054852.png",
+      layers: [
+        { url: "/models/parenquima_funcional.stl", color: "#f87171", opacity: 0.4 },
+        { url: "/models/vasculatura_portal.stl", color: "#3b82f6" }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 2.0 mm", phase: "Portal", contrast: "Yes" }
+    },
+    { 
+      isForMe: false, 
+      category: "General Surgery", 
+      title: "Achalasia", 
+      image: "/images/models/liver_3d_1772712040731.png",
+      layers: [
+        { url: "/models/higado.stl", color: "#ffcc99", opacity: 0.6 }
+      ],
+      indications: productIndications,
+      requirements: { modality: "CT", format: "DICOM", thickness: "< 2.0 mm", phase: "Single phase", contrast: "No" }
+    },
+  ]);
+
+
+  const sortedCards = useMemo(() => {
+    const list = [...caseCardsLevel1];
+    if (sortBy === "Recommended") {
+      return list.sort((a, b) => (a.isForMe === b.isForMe ? 0 : a.isForMe ? -1 : 1));
+    }
+    if (sortBy === "Alphabetical (A-Z)") {
+      return list.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return list;
+  }, [caseCardsLevel1, sortBy]);
 
   const handleCategoryClick = (cat: string) => {
     setActiveCategory(cat);
@@ -3746,59 +4207,69 @@ function DiscoverView() {
   };
 
   return (
-    <div className="flex flex-col gap-[35px] w-full mt-[100px] pb-16 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-[35px] w-full mt-6 pb-16 animate-in fade-in duration-300">
+      {/* Hero Section */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-[28px] font-medium text-ai-text tracking-tight">Discover</h1>
+        <p className="text-[14px] text-ai-text-secondary">
+          Find the surgical guide or 3D model that fits your needs.
+        </p>
+      </div>
 
-      <div className="flex flex-col gap-[27px]">
+      <div className="flex flex-col gap-[24px]">
         {/* Section Title & Nav */}
-        <div className="flex items-center justify-between mb-0">
-          <h2 className="text-[22px] font-medium text-ai-text">Specialties</h2>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-[18px] font-semibold text-ai-text">{level === 1 ? "Specialties" : activeCategory}</h2>
+          </div>
           {level === 1 && (
             <div className="flex items-center gap-2">
               <button
                 onClick={scrollSpecialtiesLeft}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-[8px] bg-white dark:bg-ai-surface border border-ai-border hover:bg-ai-hover-1 text-ai-text transition-all cursor-pointer"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
               <button
                 onClick={scrollSpecialtiesRight}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-ai-hover-1 text-ai-text-secondary hover:text-ai-text transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-[8px] bg-white dark:bg-ai-surface border border-ai-border hover:bg-ai-hover-1 text-ai-text transition-all cursor-pointer"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             </div>
           )}
         </div>
 
-        {/* Top Filters Row */}
-        <div ref={specialtiesScrollRef} className="flex items-center gap-4 overflow-x-auto no-scrollbar w-full pb-2 -mb-2 scroll-smooth">
+        {/* Categories Row */}
+        <div ref={specialtiesScrollRef} className="flex items-center gap-4 overflow-x-auto no-scrollbar w-full pb-4 -mb-4 scroll-smooth">
           {level === 1 ? (
             featuredScrollItems.map((item, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 p-1.5 pr-6 rounded-full bg-white dark:bg-[#131416] border border-[#e5e7eb] dark:border-white/10 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-300 cursor-pointer shrink-0 snap-start group/pill"
+                className={`flex flex-row items-center w-auto min-w-[170px] p-2.5 rounded-[8px] bg-white dark:bg-ai-surface border border-ai-border hover:border-ai-text-secondary/30 transition-all duration-300 cursor-pointer shrink-0 snap-start active:scale-95 group/category relative`}
                 onClick={() => handleCategoryClick(item.category)}
               >
-                <div className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover/pill:scale-[1.08] bg-gradient-to-br ${item.gradient}`}>
-                  <div className="absolute inset-0 rounded-full border border-white/40 mix-blend-overlay" />
-                  <div className="absolute inset-x-1 top-0.5 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-full opacity-50" />
-                  <span className={`text-[16px] font-bold text-white drop-shadow-sm z-10`}>{item.letter}</span>
+                <div className={`w-10 h-10 rounded-[8px] flex items-center justify-center shrink-0 bg-gradient-to-br ${item.gradient} relative`}>
+                  <span className="text-[16px] font-bold text-white uppercase">{item.letter}</span>
                 </div>
-                <div className="flex flex-col justify-center">
-                  <p className="text-[13px] font-semibold text-[#191a1c] dark:text-ai-text leading-tight group-hover/pill:text-blue-600 dark:group-hover/pill:text-blue-400 transition-colors">{item.title}</p>
+                
+                <div className="flex flex-col ml-4">
+                  <h3 className="text-[14px] font-bold text-ai-text leading-tight">{item.title}</h3>
+                  <p className="text-[11px] text-ai-text-tertiary">{item.description}</p>
                 </div>
               </div>
             ))
           ) : (
-            <div className="flex items-center gap-6 shrink-0 w-full border-b border-ai-border pb-4">
+            <div className="flex items-center gap-4 shrink-0 w-full animate-in fade-in slide-in-from-left-2 duration-300">
               <button
                 onClick={handleBack}
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-full hover:bg-ai-hover-1 transition-colors text-ai-text"
+                className="flex items-center justify-center gap-2 h-[36px] px-4 rounded-[8px] bg-ai-surface border border-ai-border hover:bg-ai-hover-1 transition-all text-ai-text"
               >
-                <ArrowLeft size={18} />
-                <span className="font-medium text-[14px]">Volver atrás</span>
+                <ArrowLeft size={16} />
+                <span className="font-medium text-[13px]">Back</span>
               </button>
-              <div className="h-8 w-px bg-ai-border" />
+              
+              <div className="h-[24px] w-px bg-ai-border" />
 
               {level === 2 && (
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
@@ -3806,16 +4277,23 @@ function DiscoverView() {
                     <button
                       key={i}
                       onClick={() => handleSubcategoryClick(s.name)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-ai-surface border border-ai-border hover:bg-ai-hover-1 text-ai-text text-[14px] font-medium whitespace-nowrap transition-colors"
+                      className="group flex items-center h-[36px] px-4 rounded-[8px] bg-white dark:bg-ai-surface border border-ai-border hover:bg-ai-hover-1 text-ai-text text-[13px] font-medium whitespace-nowrap transition-all"
                     >
-                      {s.name} <span className="text-ai-text-secondary font-normal">({s.count})</span>
+                      {s.name} 
+                      <span className="ml-2 text-ai-text-tertiary">
+                        ({s.count})
+                      </span>
                     </button>
                   ))}
                 </div>
               )}
 
               {level === 3 && (
-                <h2 className="font-semibold text-[18px] text-ai-text">{activeSubcategory}</h2>
+                <div className="flex items-center gap-3">
+                   <div className="px-3 py-1 rounded-[8px] bg-ai-hover-1 border border-ai-border">
+                     <h2 className="font-bold text-[13px] text-ai-text-secondary">{activeSubcategory}</h2>
+                   </div>
+                </div>
               )}
             </div>
           )}
@@ -3823,98 +4301,228 @@ function DiscoverView() {
       </div>
 
       {/* All products header section */}
-      <div className="flex flex-col gap-8">
-        <h2 className="font-semibold text-[22px] text-ai-text leading-[1]">
-          {level === 1 && "All products"}
-          {level === 2 && activeCategory}
-          {level === 3 && activeSubcategory}
-        </h2>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h2 className="font-semibold text-[20px] text-ai-text tracking-tight">
+            {level === 1 && "All Products"}
+            {level === 2 && activeCategory}
+            {level === 3 && activeSubcategory}
+          </h2>
 
-        {/* Search & Filters Row - Moved below title */}
-        {level === 1 && (
-          <div className="flex items-center w-full justify-between mb-2">
-            <SmartSearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Search by products or pathologies..."
-              suggestions={['Ischemic colitis', 'Desmoplastic tumor', 'Valve revision', 'Renal carcinoma', 'Liver Metastases', 'Tracheal stenosis']}
-              className="w-[320px]"
-            />
-            <div className="flex items-center gap-4 shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[8px] px-3 text-[13px] font-normal gap-2 flex items-center cursor-pointer">
-                    {filterType} <ChevronDown size={14} className="text-ai-text-tertiary" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
-                  {['All', ...Array.from(new Set(featuredScrollItems.map(item => item.category)))].map(s => (
-                    <DropdownMenuItem key={s as string} onClick={() => setFilterType(s as string)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                      {filterType === s && <Check size={12} className="text-blue-500" />}
-                      {filterType !== s && <span className="w-3" />}
-                      {s as React.ReactNode}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[8px] px-3 text-[13px] font-normal gap-2 flex items-center cursor-pointer">
-                    {sortBy} <ChevronDown size={14} className="text-ai-text-tertiary" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border shadow-md rounded-[8px]">
-                  {['Most popular', 'Newest', 'Alphabetical (A-Z)', 'Alphabetical (Z-A)'].map(s => (
-                    <DropdownMenuItem key={s} onClick={() => setSortBy(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] flex items-center gap-2">
-                      {sortBy === s && <Check size={12} className="text-blue-500" />}
-                      {sortBy !== s && <span className="w-3" />}
-                      {s}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+          {/* Search & Filters Row */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="relative group/search">
+               <SmartSearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Search products..."
+                suggestions={['Ischemic colitis', 'Liver Metastases', 'Renal carcinoma']}
+                className="w-[260px] h-[36px] bg-white dark:bg-ai-surface border-ai-border transition-all rounded-[8px]"
+              />
             </div>
+            
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-[36px] bg-white dark:bg-ai-surface border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[8px] px-3 text-[13px] font-normal gap-2 flex items-center cursor-pointer transition-all">
+                  <ArrowUpDown size={14} className="text-ai-text-tertiary" />
+                  {sortBy}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[180px] bg-white dark:bg-ai-surface border-ai-border rounded-[8px] p-1 shadow-md">
+                {['Recommended', 'Most popular', 'Newest', 'Alphabetical (A-Z)'].map(s => (
+                  <DropdownMenuItem key={s} onClick={() => setSortBy(s)} className="cursor-pointer text-ai-text focus:bg-ai-hover-1 text-[13px] rounded-[6px] flex items-center gap-2 p-2">
+                    {sortBy === s && <Check size={12} className="text-[var(--ai-accent)]" />}
+                    {sortBy !== s && <span className="w-3" />}
+                    {s}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[24px] w-full">
-        {caseCardsLevel1.map((card, idx) => (
-          <div key={idx} className="flex flex-col gap-[16px] p-[16px] rounded-[16px] border border-ai-border bg-ai-surface hover:shadow-md transition-shadow cursor-pointer group relative">
-
-            {/* Image Box */}
-            <div className="relative w-full h-[136px] bg-[#f9fafa] dark:bg-[#1f1f21] rounded-[12px] overflow-hidden flex flex-col justify-start items-end p-2 border border-black/5 dark:border-white/5">
-              {card.isForMe && (
-                <div className="absolute top-2 right-2 bg-white/90 dark:bg-black/50 backdrop-blur-md rounded-[20px] p-1.5 flex items-center justify-center transition-all duration-300 border border-ai-border dark:border-white/10 shadow-sm z-10 group/help cursor-help">
-                  <span className="text-[12px] font-medium text-ai-text whitespace-nowrap overflow-hidden max-w-0 opacity-0 group-hover/help:max-w-[200px] group-hover/help:opacity-100 group-hover/help:px-1 group-hover/help:mr-1 transition-all duration-300">Is this for me?</span>
-                  <HelpCircle size={14} className="text-ai-text-secondary" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        {sortedCards.map((card, idx) => (
+          <div 
+            key={idx} 
+            className="group flex flex-col bg-white dark:bg-ai-surface rounded-[8px] overflow-hidden transition-all duration-300 cursor-pointer relative"
+          >
+            {/* Visual Header - 3D Canvas Thumbnail */}
+            <div 
+              onClick={() => setSelectedProduct(card)}
+              className="relative aspect-square bg-[#f8fafc] dark:bg-[#1a1b1e] overflow-hidden group/thumb cursor-pointer"
+            >
+               {card.isForMe && (
+                <div className="absolute top-3 left-3 z-20">
+                   <div className="flex items-center gap-1.5 px-[13px] py-[7px] rounded-full bg-white/90 dark:bg-ai-surface/90 border border-ai-border backdrop-blur-sm">
+                      <Zap size={10} className="text-amber-500 fill-amber-500" />
+                      <span className="text-[11px] font-semibold text-ai-text capitalize tracking-wider">Recommended</span>
+                   </div>
                 </div>
-              )}
-              {/* Product render */}
-              <div className="absolute inset-0 flex items-center justify-center p-3 mix-blend-multiply dark:mix-blend-normal">
-                <img src={card.image} alt={card.title} className="w-full h-full object-contain pointer-events-none" />
+               )}
+
+              {/* Product render - NOW INTERACTIVE 3D */}
+              <div className="w-full h-full group-hover/thumb:scale-[1.02] transition-transform duration-500">
+                <Simple3DViewer layers={card.layers} showBadge={false} showControls={false} />
               </div>
             </div>
 
-            {/* Typography */}
-            <div className="flex flex-col gap-1 w-full pl-1">
-              <p className="font-normal text-[12px] text-ai-text-tertiary">{card.category}</p>
-              <p className="font-semibold text-[14px] text-ai-text leading-tight">{card.title}</p>
-            </div>
+            {/* Content Body */}
+            <div className="p-4 flex flex-col flex-1">
+              <div className="flex items-center mb-1">
+                 <span className="text-blue-500 text-[10px] font-bold uppercase tracking-wider">
+                   {card.category}
+                 </span>
+              </div>
+              
+              <h3 className="font-bold text-[14px] text-ai-text leading-tight mb-4">
+                {card.title}
+              </h3>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 mt-auto pt-2 w-full">
-              <button className="w-full h-[36px] bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] rounded-[6px] font-medium text-[13px] transition-colors shadow-sm">
-                Request
-              </button>
-              <button className="w-full h-[36px] bg-transparent hover:bg-ai-hover-1 text-[#a6b6c5] dark:text-[#a8c7fa] border border-transparent hover:border-ai-border rounded-[6px] font-medium text-[13px] transition-colors">
-                View model
-              </button>
+               <div className="mt-auto flex items-center justify-between">
+                  <div 
+                    onClick={() => setSelectedProduct(card)}
+                    className="flex items-center gap-1.5 text-[12px] font-bold text-ai-text-secondary hover:text-ai-text transition-all cursor-pointer"
+                  >
+                    <Eye size={14} />
+                    <span>View 3D Model</span>
+                  </div>
+                 <button className="h-[32px] px-4 bg-[var(--ai-accent)] hover:opacity-90 text-white dark:text-black rounded-[8px] font-bold text-[12px] transition-all active:scale-95">
+                   Request
+                 </button>
+               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+        <DialogContent className="max-w-[1000px] w-[95vw] h-[80vh] p-0 overflow-hidden bg-white dark:bg-ai-surface border-ai-border rounded-[16px] flex flex-col md:flex-row shadow-2xl">
+          {selectedProduct && (
+            <>
+              {/* Left: 3D Preview */}
+              <div className="w-full md:w-[58%] h-full relative border-b md:border-b-0 md:border-r border-ai-border bg-[#f8fafc] dark:bg-ai-surface/10">
+                <Simple3DViewer layers={selectedProduct.layers} />
+                <div className="absolute top-6 left-6 z-10 flex flex-col gap-1">
+                   <DialogTitle className="text-[20px] font-bold text-ai-text">{selectedProduct.title}</DialogTitle>
+                   <DialogDescription className="text-[12px] font-bold text-blue-500 uppercase tracking-widest">
+                     {selectedProduct.category}
+                   </DialogDescription>
+                </div>
+              </div>
+
+              {/* Right: Info */}
+              <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-ai-surface/30">
+                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6">
+                    
+                    {/* Indications */}
+                    <div className="flex flex-col gap-3.5">
+                       <h3 className="text-[13px] font-bold text-ai-text uppercase tracking-widest flex items-center gap-2 px-1">
+                         <Info size={15} className="text-blue-500" />
+                         Indications of Use
+                       </h3>
+                       <div className="flex flex-col gap-2">
+                          {selectedProduct.indications.map((group: any, i: number) => (
+                            <CollapsibleIndication key={i} group={group} />
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Requirements */}
+                    <div className="flex flex-col gap-3.5">
+                       <h3 className="text-[13px] font-bold text-ai-text uppercase tracking-widest flex items-center gap-2 px-1">
+                         <Box size={15} className="text-blue-500" />
+                         Technical Requirements
+                       </h3>
+                       <div className="rounded-[12px] border border-ai-border overflow-hidden bg-white dark:bg-ai-surface shadow-sm text-ai-text">
+                          <table className="w-full text-left text-[13px]">
+                             <tbody>
+                                {[
+                                  { label: "Modality", value: selectedProduct.requirements.modality },
+                                  { label: "Format", value: selectedProduct.requirements.format },
+                                  { label: "Slice Thickness", value: selectedProduct.requirements.thickness },
+                                  { label: "Phase", value: selectedProduct.requirements.phase },
+                                  { label: "Contrast", value: selectedProduct.requirements.contrast }
+                                ].map((row, i) => (
+                                  <tr key={i} className={`border-b border-ai-border last:border-0 hover:bg-ai-hover-1/20 transition-colors`}>
+                                    <td className="px-4 py-3 font-bold text-ai-text-secondary text-[10px] uppercase tracking-wider w-2/5 border-r border-ai-border/50">
+                                      {row.label}
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold text-ai-text">
+                                      {row.value}
+                                    </td>
+                                  </tr>
+                                ))}
+                             </tbody>
+                          </table>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Fixed Footer with Button */}
+                 <div className="p-6 border-t border-ai-border bg-white dark:bg-ai-surface/50 backdrop-blur-md flex flex-col gap-3">
+                    <Button className="w-full h-[48px] bg-[var(--ai-accent)] hover:opacity-90 text-white dark:text-black rounded-[10px] font-bold text-[14px] active:scale-95 transition-all shadow-lg shadow-[var(--ai-accent)]/10">
+                      Request
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        if (selectedProduct && onViewModel) {
+                          onViewModel({
+                            ...selectedProduct,
+                            clave: "DEMO-CASE",
+                            subClave: selectedProduct.category,
+                            subProyecto: selectedProduct.title,
+                            proyecto: "Product Preview",
+                            status: "Demo",
+                            avatars: [{ initials: "CS", name: "Cella Specialist" }]
+                          });
+                          setSelectedProduct(null);
+                        }
+                      }}
+                      className="w-full h-[48px] bg-transparent border-ai-border hover:bg-ai-hover-1 text-ai-text rounded-[10px] font-bold text-[14px] active:scale-95 transition-all"
+                    >
+                      Try Model
+                    </Button>
+                 </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CollapsibleIndication({ group }: { group: { label: string; items: string[] } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col border border-ai-border/50 rounded-[12px] overflow-hidden transition-all duration-300">
+      <button 
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between p-3.5 bg-ai-hover-1/30 hover:bg-ai-hover-1 transition-colors group"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className={`w-1.5 h-1.5 rounded-full ${open ? 'bg-blue-500' : 'bg-ai-text-tertiary shadow-sm'}`} />
+          <span className={`text-[13.5px] font-bold ${open ? 'text-ai-text' : 'text-ai-text-secondary'} transition-colors`}>
+            {group.label}
+          </span>
+        </div>
+        <ChevronDown size={14} className={`text-ai-text-tertiary transition-transform duration-300 ${open ? 'rotate-180 text-blue-500' : ''}`} />
+      </button>
+      {open && (
+        <div className="p-3.5 pt-1 bg-white dark:bg-ai-surface/20 flex flex-col gap-2.5 animate-in slide-in-from-top-1 duration-200">
+          {group.items.map((item, i) => (
+            <div key={i} className="flex items-start gap-2.5 ml-1">
+              <CheckCircle size={13} className="text-blue-500/80 mt-0.5 shrink-0" />
+              <span className="text-[12.5px] text-ai-text-secondary leading-tight">{item}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -4046,7 +4654,7 @@ function TourCard({
       
       {/* SOLID WHITE CARD */}
       <div 
-        className="absolute z-[1002] pointer-events-auto bg-white dark:bg-ai-surface border border-ai-border shadow-2xl rounded-xl w-[320px] p-5 animate-in slide-in-from-bottom-2 duration-300"
+        className="absolute z-[1002] pointer-events-auto bg-white dark:bg-ai-surface border border-ai-border rounded-[8px] w-[320px] p-5 animate-in slide-in-from-bottom-2 duration-300"
         style={{
           top: pos.top,
           left: pos.left,
@@ -4070,7 +4678,7 @@ function TourCard({
             <button onClick={onSkip} className="text-[13px] font-medium text-ai-text-tertiary hover:text-ai-text transition-colors">Skip</button>
             <Button 
               onClick={onNext}
-              className="bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] border-none shadow-none rounded-full px-5 h-[36px] text-[13px] font-semibold flex items-center transition-colors"
+              className="bg-[#1a73e8] hover:bg-[#155ebd] text-white dark:bg-[#a8c7fa] dark:text-[#041e49] dark:hover:bg-[#d3e3fd] border-none shadow-none rounded-[8px] px-5 h-[36px] text-[13px] font-semibold flex items-center transition-colors"
             >
               {current === total ? 'Finish' : 'Next'}
             </Button>

@@ -86,14 +86,14 @@ export function RecommendedCarousel() {
                     {recommendations.map((item, i) => (
                         <div
                             key={i}
-                            className="flex items-center gap-3 p-1.5 pr-6 rounded-full bg-white dark:bg-[#131416] border border-[#e5e7eb] dark:border-white/10 hover:-translate-y-0.5 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_2px_8px_rgba(255,255,255,0.02)] hover:border-black/5 dark:hover:border-white/10 transition-all duration-300 cursor-pointer shrink-0 snap-start group/pill"
+                            className="flex items-center gap-3 p-1.5 pr-6 rounded-full bg-white dark:bg-[#131416] border border-[#e5e7eb] dark:border-white/10 hover:-translate-y-0.5 hover:border-black/5 dark:hover:border-white/10 transition-all duration-300 cursor-pointer shrink-0 snap-start group/pill"
                         >
                             <div className={`relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover/pill:scale-[1.08] ${item.bg}`}>
                                 {/* Subtle inner highlight for 3D sphere effect */}
                                 <div className="absolute inset-0 rounded-full border border-white/40 mix-blend-overlay" />
                                 <div className="absolute inset-x-1 top-0.5 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-full opacity-50" />
 
-                                <span className="text-[16px] font-bold text-white drop-shadow-sm z-10">
+                                <span className="text-[16px] font-bold text-white z-10">
                                     {item.initial}
                                 </span>
                             </div>
@@ -108,7 +108,7 @@ export function RecommendedCarousel() {
                         </div>
                     ))}
 
-                    <div className="flex items-center gap-3 p-1.5 pr-6 rounded-full bg-white dark:bg-[#131416] border border-[#e5e7eb] dark:border-white/10 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-black/10 dark:hover:border-white/20 transition-all duration-300 cursor-pointer shrink-0 snap-start group/pill">
+                    <div className="flex items-center gap-3 p-1.5 pr-6 rounded-full bg-white dark:bg-[#131416] border border-[#e5e7eb] dark:border-white/10 hover:-translate-y-0.5 hover:border-black/10 dark:hover:border-white/20 transition-all duration-300 cursor-pointer shrink-0 snap-start group/pill">
                         <div className="relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover/pill:scale-[1.08] bg-[#f4f4f4] dark:bg-[#2b2d31]">
                             <MoreHorizontal size={20} className="text-[#191a1c] dark:text-white" />
                         </div>
