@@ -8,7 +8,7 @@ export default function Step1Page() {
   const { state, setSelectedModel } = useNewCase();
   const router = useRouter();
 
-  const handleNext = (model: string) => {
+  const handleNext = (model: "standard" | "rd") => {
     setSelectedModel(model);
     router.push("/request-case/step-2");
   };
