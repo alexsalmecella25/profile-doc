@@ -13,8 +13,8 @@ export function SpecialtiesCarousel() {
             image: "/images/models/liver_3d_1772712040731.png",
             products: [
                 { id: "col", title: "Colorectal", initial: "C" },
-                { id: "eso", title: "Esophagogastric", initial: "E" },
-                { id: "hep", title: "Hepatobiliary", initial: "H" },
+                { id: "eso", title: "Esophatrásgastric", initial: "E" },
+                { id: "hep", title: "Hepatobiliopancreática", initial: "H" },
                 { id: "pan", title: "Pancreatic", initial: "P" },
                 { id: "per", title: "Peritoneal & Retroperitoneal", initial: "P" }
             ]
@@ -33,7 +33,7 @@ export function SpecialtiesCarousel() {
         },
         {
             id: "toracica",
-            title: "Thoracic Surgery",
+            title: "Cirugía torácica",
             initial: "T",
             color: "text-purple-600 dark:text-purple-500",
             bg: "bg-purple-100 dark:bg-purple-500/10",
@@ -50,7 +50,7 @@ export function SpecialtiesCarousel() {
             bg: "bg-emerald-100 dark:bg-emerald-500/10",
             image: "/images/models/brain_3d_1772712116509.png",
             products: [
-                { id: "ped", title: "Pediatric Surgery", initial: "P" },
+                { id: "ped", title: "Cirugía pediátrica", initial: "P" },
                 { id: "cab", title: "Head & Neck Surgery", initial: "H" },
                 { id: "car", title: "Cardiac Surgery", initial: "C" }
             ]

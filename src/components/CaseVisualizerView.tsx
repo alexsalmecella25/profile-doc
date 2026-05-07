@@ -1560,7 +1560,7 @@ export function CaseVisualizerView({
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setMeasurePoints([]); }}
                                                         className={`w-7 h-7 rounded-[8px] flex items-center justify-center transition-colors pointer-events-auto ${isDark ? 'hover:bg-white/10 text-white/60 hover:text-white' : 'hover:bg-black/5 text-black/60 hover:text-black'}`}
-                                                        title="Cancel"
+                                                        title="Cancelar"
                                                     >
                                                         <X size={16} />
                                                     </button>
@@ -1734,7 +1734,7 @@ export function CaseVisualizerView({
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
-                                <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Settings</span></DropdownMenuItem>
+                                <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Ajustes</span></DropdownMenuItem>
                                 <DropdownMenuItem className="text-[13px] rounded-[8px] px-3 py-2 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10"><span>Logout</span></DropdownMenuItem>
                             </div>
                         </DropdownMenuContent>
@@ -1749,7 +1749,7 @@ export function CaseVisualizerView({
                             onClick={() => window.location.href = '/'}
                         />
                         <span className={`text-[12px] opacity-30 ${isDark ? "text-[#a3a3a3]" : "text-[#687076]"}`}>/</span>
-                        <span onClick={onBack} className={`text-[14px] font-medium transition-colors ${isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]"}`}>Cases</span>
+                        <span onClick={onBack} className={`text-[14px] font-medium transition-colors ${isDark ? "text-[#a3a3a3] hover:text-[#ededed]" : "text-[#687076] hover:text-[#11181c]"}`}>Casos</span>
                         <span className={`text-[12px] opacity-30 ${isDark ? "text-[#a3a3a3]" : "text-[#687076]"}`}>/</span>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -1784,7 +1784,7 @@ export function CaseVisualizerView({
                                 </div>
                                 <div className="max-h-[380px] overflow-y-auto p-1 custom-scrollbar">
                                     {[
-                                        { id: '1', name: "JER AN1309531635", date: "2 hours ago", active: false },
+                                        { id: '1', name: "JER AN1309531635", date: "2 hours atrás", active: false },
                                         { id: '2', name: "PTR AN1309531640", date: "Yesterday", active: false },
                                         { id: '3', name: "MNT AN1309531622", date: "12 Mar 2024", active: true },
                                         { id: '4', name: "ALV AN1309531641", date: "10 Mar 2024", active: false },
@@ -2402,7 +2402,7 @@ export function CaseVisualizerView({
 
                     <div className={`w-[1px] h-4 mx-0.5 bg-white/10`} />
                     <ToolButton isDark={isDark} icon={<Circle size={16} strokeWidth={2.5} className="text-red-500 fill-red-500" />} label="Record View" onClick={() => saveCurrentView()} />
-                    <ToolButton isDark={isDark} icon={<RotateCcw size={16} strokeWidth={1.5} />} label="Restore" onClick={() => {
+                    <ToolButton isDark={isDark} icon={<RotateCcw size={16} strokeWidth={1.5} />} label="Restaurar" onClick={() => {
                         const hasChanges = marks.length > 0 || measurements.length > 0 || comments.length > 0 || notes.length > 0;
                         if (hasChanges) {
                             setIsRestoring(true);
@@ -2484,23 +2484,19 @@ export function CaseVisualizerView({
                 <DialogContent className={`${isDark ? 'bg-[#1C1C1E] border-white/10 text-white' : 'bg-white border-black/10 text-black'} rounded-[8px] max-w-[340px] p-6 !z-[1001]`}>
                     <DialogHeader className="gap-2">
                         <DialogTitle className="text-[18px] font-bold">Restaurar Modelo</DialogTitle>
-                        <DialogDescription className={`text-[14px] leading-relaxed ${isDark ? 'text-white/60' : 'text-black/60'}`}>
-                            ¿Estás seguro de que deseas restaurar el modelo? Se perderán todas las marcas, medidas y anotaciones realizadas hasta ahora.
-                        </DialogDescription>
+                        <DialogDescription className={`text-[14px] leading-relaxed ${isDark ? 'text-white/60' : 'text-black/60'}`}>¿Estás seguro de que deseas restaurar el modelo? Se perderán todas las marcas, medidas y anotaciones realizadas hasta ahora.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="mt-6 gap-3 flex sm:flex-row flex-col">
                         <Button
                             variant="ghost"
                             onClick={(e) => { e.stopPropagation(); setIsRestoring(false); }}
                             className={`flex-1 ${isDark ? 'hover:bg-white/5 text-white/40 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-black'}`}
-                        >
-                            Cancel
-                        </Button>
+                        >Cancelar</Button>
                         <Button
                             onClick={(e) => { e.stopPropagation(); resetModel(); }}
                             className="flex-1 bg-red-500 hover:bg-red-600 text-white border-none font-bold"
                         >
-                            Restaurar Todo
+                            Restore Todo
                         </Button>
                     </DialogFooter>
                 </DialogContent>

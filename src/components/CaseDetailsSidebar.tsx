@@ -35,9 +35,7 @@ export function CaseDetailsSidebar({
                 {/* Header */}
                 <div className="h-[64px] border-b border-[#e4e7e9] dark:border-ai-border flex items-center justify-between px-6 shrink-0 bg-white dark:bg-[#131416] rounded-t-[8px] z-10">
                     <div className="w-[88px]" /> {/* Spacer for centering */}
-                    <SheetTitle className="text-[16px] font-['Lato',sans-serif] font-bold text-[#393c40] dark:text-ai-text flex-1 text-center">
-                        Detalles del caso
-                    </SheetTitle>
+                    <SheetTitle className="text-[16px] font-['Lato',sans-serif] font-bold text-[#393c40] dark:text-ai-text flex-1 text-center">Detalles del caso</SheetTitle>
                     <div className="flex items-center gap-2 w-[88px] justify-end">
                         <Button variant="ghost" size="icon" className="h-[28px] w-[28px] text-ai-text-secondary hover:text-ai-text hover:bg-ai-hover-1 rounded-full">
                             <Edit2 size={16} />
@@ -64,21 +62,21 @@ export function CaseDetailsSidebar({
                             <div className="flex flex-col gap-1 items-start w-full font-['Lato',sans-serif]">
                                 <span className="text-[16px] text-[#40454a] dark:text-ai-text-secondary leading-normal">{caseData.clave || "ID24593"}</span>
                                 <p className="text-[14px] text-[#40454a] dark:text-ai-text-secondary leading-[20px] mt-1">
-                                    {caseData.subClave || "General"} - {caseData.subProyecto || "Hepatobiliopancreática"}
+                                    {caseData.subID || "General"} - {caseData.subProject || "Hepatobiliopancreática"}
                                 </p>
                                 <p className="text-[16px] font-bold text-[#191a1c] dark:text-ai-text leading-[24px]">
-                                    {caseData.proyecto || "Desmoplastic tumor intraabdominal"} {caseData.subProyecto || "JER AN1309531635"}
+                                    {caseData.proyecto || "Tumor desmoplásico intraabdominal"} {caseData.subProject || "JER AN1309531635"}
                                 </p>
                             </div>
 
                             {/* Status Pill */}
                             <div className="bg-[#f4f4f4] dark:bg-ai-surface border border-transparent dark:border-ai-border inline-flex items-center gap-2 rounded-lg px-2 py-1">
-                                <div className={`w-[8px] h-[8px] rounded-full ${caseData.status === 'Completed' ? 'bg-ai-success' :
-                                    caseData.status === 'Pending' ? 'bg-gray-300 dark:bg-[#e3e3e3]' :
+                                <div className={`w-[8px] h-[8px] rounded-full ${caseData.status === 'Completado' ? 'bg-ai-success' :
+                                    caseData.status === 'Pendiente' ? 'bg-gray-300 dark:bg-[#e3e3e3]' :
                                         caseData.status === 'In progress' ? 'bg-[#fbbc04]' :
-                                            caseData.status === 'Blocked' ? 'bg-red-500' : 'bg-[#191a1c] dark:bg-ai-text'
+                                            caseData.status === 'Bloqueado' ? 'bg-red-500' : 'bg-[#191a1c] dark:bg-ai-text'
                                     }`} />
-                                <span className="text-[#191a1c] dark:text-ai-text font-semibold text-[12px] font-['Inter',sans-serif]">{caseData.status || "Completed"}</span>
+                                <span className="text-[#191a1c] dark:text-ai-text font-semibold text-[12px] font-['Inter',sans-serif]">{caseData.status || "Completado"}</span>
                             </div>
                         </div>
 

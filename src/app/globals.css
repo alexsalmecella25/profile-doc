@@ -163,6 +163,10 @@
   body {
     @apply bg-ai-base text-ai-text antialiased;
   }
+
+  button, [role="button"] {
+    cursor: pointer;
+  }
 }
 
 /* Custom Panel Scrollbar for AI Studio feel */
