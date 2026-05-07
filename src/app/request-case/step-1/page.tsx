@@ -20,15 +20,15 @@ export default function Step1Page() {
       
       <div className="flex flex-row w-[800px] max-w-full gap-[16px]">
         <button 
-          onClick={() => handleNext("estándar")}
+          onClick={() => handleNext("standard")}
           className={`flex flex-col items-start p-[24px] gap-[16px] flex-1 rounded-[12px] border-2 transition-all bg-[#FFF] ${
-            state.selectedModel === "estándar" ? "border-[#1a73e8] shadow-[0_0_0_1px_#1a73e8]" : "border-[#A6B6C5] hover:border-[#1a73e8]/50"
+            state.selectedModel === "standard" ? "border-[#1a73e8] shadow-[0_0_0_1px_#1a73e8]" : "border-[#A6B6C5] hover:border-[#1a73e8]/50"
           }`}
         >
           <div className={`w-5 h-5 rounded-full border-[3px] flex items-center justify-center transition-all ${
-            state.selectedModel === "estándar" ? "border-[#1a73e8]" : "border-[#A6B6C5]"
+            state.selectedModel === "standard" ? "border-[#1a73e8]" : "border-[#A6B6C5]"
           }`}>
-            {state.selectedModel === "estándar" && <div className="w-2 h-2 rounded-full bg-[#1a73e8]" />}
+            {state.selectedModel === "standard" && <div className="w-2 h-2 rounded-full bg-[#1a73e8]" />}
           </div>
           <div className="flex flex-col items-start text-left gap-1">
             <span className="text-[16px] font-bold text-[#191A1C] dark:text-gray-800">Modelo clínico estándar</span>
